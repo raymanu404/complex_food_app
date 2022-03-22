@@ -24,6 +24,8 @@ target 'complex_food_v1' do
 
   pod 'RNGoogleSignin', :path => '../node_modules/@react-native-google-signin/google-signin'
 
+  pod 'tipsi-stripe', :path => '../node_modules/tipsi-stripe'
+
   target 'complex_food_v1Tests' do
     inherit! :complete
     # Pods for testing
