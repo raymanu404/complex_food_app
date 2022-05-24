@@ -23,191 +23,103 @@ import {
 import colors from '../../../config/colors/colors';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
-import {MenuProductsContext} from '../../../config/context';
+import {MenuProductsContext, UserContext} from '../../../App';
+import api_axios from '../../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = 300;
 const enum_categories = {
-  SOUP: 'soup',
-  MEAT: 'meat',
-  GARNISH: 'garnish',
-  DESERT: 'desert',
-  SALAD: 'salad',
-  DRINK: 'drink',
-  STANDARD: 'standard',
+  SOUP: 1,
+  MEAT: 2,
+  GARNISH: 3,
+  DESERT: 4,
+  SALAD: 5,
+  DRINK: 6,
+  STANDARD: 7,
 };
 
+const defaultMenusData = [
+  {
+    id: 'augfahgagag2aifgahfpj',
+    image: require('../../assets/14.jpg'),
+    title: 'Cheese Cake',
+    price: 5.99,
+    quantity: 0,
+    category: enum_categories.STANDARD,
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+  },
+  {
+    id: 'aafag222222222gagafpj',
+    image: require('../../assets/15.jpg'),
+    title: 'Cheese Cake',
+    price: 5.99,
+    quantity: 0,
+    category: enum_categories.STANDARD,
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+  },
+  {
+    id: 'aafag22222',
+    image: require('../../assets/24.jpg'),
+    title: 'Cheese Cake',
+    price: 5.99,
+    quantity: 0,
+    category: enum_categories.SOUP,
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+  },
+];
+
 function Home({navigation}) {
-  const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
+  // const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
+  const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  const buyerId = userDataLogin.id || 1;
+  const [menuData, setMenuData] = useState([]);
+  const [orders, setOrders] = useState([]);
 
-  // const addInCart = useCallback(menuItem => {
-  //   console.log('teaociabufaj' + menuItem);
-  //   setMenuDataInCart(menu => [...menu, menuItem]);
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
 
-  // const dataForCart = useMemo(
-  //   () => ({menuDataInCart, addInCart}),
-  //   [addInCart, menuDataInCart],
-  // );
+        const response = await api_axios.get('/products', headers);
+        setMenuData(response.data);
+      } catch (error) {
+        console.log(error.response.status);
+      }
+    };
 
-  const [menuData, setMenuData] = useState([
-    {
-      key: 'augfahgagag2aifgahfpj',
-      src: require('../../assets/14.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.STANDARD,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'aafag222222222gagafpj',
-      src: require('../../assets/13.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.STANDARD,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augfahgagafpj',
-      src: require('../../assets/17.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.STANDARD,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augfahgag2pj',
-      src: require('../../assets/16.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.STANDARD,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augfahgafj',
-      src: require('../../assets/15.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.DRINK,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augfahgaga',
-      src: require('../../assets/13.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.DRINK,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augfahhfpj',
-      src: require('../../assets/14.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.SOUP,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'heehreherhe',
-      src: require('../../assets/16.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.SOUP,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augghfpj',
-      src: require('../../assets/17.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.SOUP,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'aug1fpj',
-      src: require('../../assets/19.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.MEAT,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augf5pj',
-      src: require('../../assets/23.jpg'),
-      title: 'Salata de beof',
-      price: 5.99,
-      quantity: 0,
-      category: 'salad',
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'aug7pj',
-      src: require('../../assets/20.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.MEAT,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augf6pj',
-      src: require('../../assets/3.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.DESERT,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'augf5pj',
-      src: require('../../assets/5.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.DESERT,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-    {
-      key: 'aug2fpj',
-      src: require('../../assets/6.jpg'),
-      title: 'Cheese Cake',
-      price: 5.99,
-      quantity: 0,
-      category: enum_categories.GARNISH,
-      details:
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    },
-  ]);
+    const getOrders = async () => {
+      try {
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+
+        const response = await api_axios.get(`/orders/${buyerId}`, headers);
+        setOrders(response.data);
+      } catch (error) {
+        console.log(error.response.status);
+      }
+    };
+
+    getProducts();
+    getOrders();
+    // return () => {
+    //   setMenuData([]);
+    // };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [infoToSearch, setInfoToSearch] = useState('');
-
-  const [categoriesData, setCategoriesData] = useState([
+  const categoriesData = [
     {
       key: '1fbaijoga',
       type: enum_categories.SOUP,
@@ -244,20 +156,15 @@ function Home({navigation}) {
       title: 'Bauturi',
       src: require('../../assets/drink.png'),
     },
-  ]);
-
-  // useEffect(() => {
-  //   console.log(menuDataInCart);
-  // });
+  ];
 
   const MenuItem = props => (
     <View style={styles.menuContainer}>
       <TouchableHighlight
         underlayColor={colors.white}
-        // onPress={() => vasi()}
         onPress={() => goToDetailsStandard(props)}>
         <Image
-          source={props.src}
+          source={props.image}
           style={styles.menu_standard_image}
           resizeMode="cover"
         />
@@ -271,31 +178,17 @@ function Home({navigation}) {
     return (
       <MenuItem
         title={item.title}
-        src={item.src}
+        image={item.image}
         price={item.price}
-        details={item.details}
+        details={item.description}
         category={item.category}
-        quantity={item.quantity}
-        mykey={item.key}
+        quantity={0}
+        mykey={item.id}
+        userId={userDataLogin.id || 8}
       />
     );
   };
 
-  const vasi = () => {
-    setMenuDataInCart(menu => [
-      ...menu,
-      {
-        key: 'he21414',
-        src: require('../../assets/16.jpg'),
-        title: 'Cheese Cake',
-        price: 5.99,
-        quantity: 0,
-        category: enum_categories.STANDARD,
-        details: 'Lorem.',
-      },
-    ]);
-  };
-  console.log(menuDataInCart);
   const Categories = props => (
     <View style={styles.categories_container}>
       <TouchableOpacity
@@ -319,28 +212,57 @@ function Home({navigation}) {
       quantity={item.quantity}
       mykey={item.key}
       type={item.type}
+      userId={userDataLogin.id || 8}
     />
   );
 
-  const goToDetailsCategories = props => {
-    let menuDataForCategories = menuData.filter(
-      item => item.category === props.type,
-    );
+  const getCartIdFromShoppingHandler = CARTID => {
+    console.log(CARTID);
+    setUserDataLogin({
+      ...userDataLogin,
+      cartId: CARTID,
+    });
+  };
 
-    // console.log(menuDataForCategories);
+  const goToDetailsCategories = props => {
+    let menuDataForCategories =
+      menuData.length !== 0
+        ? menuData.filter(
+            item => item.category === props.type && item.isInStock === true,
+          )
+        : defaultMenusData.filter(item => item.category === props.type);
+
+    let dataCategories = menuDataForCategories.map(function (row) {
+      return {
+        title: row.title,
+        src: row.image,
+        price: row.price,
+        details: row.description,
+        category: row.category,
+        key: row.id,
+        buyerId: props.userId,
+        quantity: 0,
+      };
+    });
     navigation.navigate('DetailsCategoriesScreen', {
-      menuDataForCategories: menuDataForCategories,
+      menuDataForCategories: dataCategories,
+      onGoBack: getCartIdFromShoppingHandler,
     });
   };
   const goToDetailsStandard = props => {
-    navigation.navigate('DetailsStandardScreen', {
+    let menuStandardObj = {
       title: props.title,
       price: props.price,
-      src: props.src,
+      src: props.image,
       details: props.details,
       category: props.category,
       quantity: props.quantity,
       key: props.mykey,
+      userId: props.userId,
+    };
+    navigation.navigate('DetailsStandardScreen', {
+      menuStandardObj: menuStandardObj,
+      onGoBack: getCartIdFromShoppingHandler,
     });
   };
 
@@ -351,11 +273,11 @@ function Home({navigation}) {
   const onSearchBarButton = () => {
     if (String(infoToSearch) !== '') {
       console.log('search bar');
+      //cu api
     }
   };
 
   return (
-    // <MenuProductsContext.Provider value={[menuDataInCart, setMenuDataInCart]}>
     <TouchableWithoutFeedback
       onPress={() => {
         Keyboard.dismiss();
@@ -363,7 +285,7 @@ function Home({navigation}) {
       <View style={styles.container}>
         {/* ------------------------------------HEADER---------------------------- */}
         <View style={styles.header}>
-          <Text style={styles.textSuggest}>Meniu</Text>
+          {/* <Text style={styles.textSuggest}>Meniu</Text> */}
           {/* --------------------------------- SEARCH BAR ------------------------------ */}
           <View style={styles.searchBar}>
             <TextInput
@@ -388,26 +310,41 @@ function Home({navigation}) {
 
         {/* --------------------------------FOOTER ---------------------------------- */}
         <View style={styles.footer}>
-          <Text
-            style={[
-              styles.textSuggest,
-              {color: colors.blackGrey, left: width - 540, marginBottom: 5},
-            ]}>
-            Meniuri Standard
-          </Text>
-          <FlatList
-            horizontal={true}
-            data={menuData.filter(
-              el => el.category === enum_categories.STANDARD,
-            )}
-            keyExtractor={item => item.key}
-            renderItem={renderMenuItem}
-          />
+          {/* ------------------- STANDARD MENUS ------------------- */}
+          <View style={styles.menuStandardContainer}>
+            <Text
+              style={[
+                styles.textSuggest,
+                {
+                  color: colors.blackGrey,
+                },
+              ]}>
+              Meniuri Standard
+            </Text>
+            <FlatList
+              horizontal={true}
+              data={
+                menuData.length !== 0
+                  ? menuData.filter(
+                      el =>
+                        Number(el.category) === enum_categories.STANDARD &&
+                        el.isInStock === true,
+                    )
+                  : defaultMenusData.filter(
+                      el => Number(el.category) === enum_categories.STANDARD,
+                    )
+              }
+              keyExtractor={item => item.id}
+              renderItem={renderMenuItem}
+            />
+          </View>
+
+          {/* ------------------- CATEGORIES ------------------- */}
           <View style={styles.categories}>
             <Text
               style={[
                 styles.textSuggest,
-                {color: colors.blackGrey, left: width - 560},
+                {color: colors.blackGrey, right: width - width * 0.6},
               ]}>
               Categorii
             </Text>
@@ -418,10 +355,27 @@ function Home({navigation}) {
               renderItem={renderCategoryItem}
             />
           </View>
+
+          {/* ------------------- ORDERS ------------------- */}
+          <View style={styles.orders}>
+            <Text style={[styles.textSuggest, {color: colors.blackGrey}]}>
+              Comenziile mele
+            </Text>
+            {/* vom face partea de order uri si bagat in stack detailii de la fiecare comanda cu produsele aferente */}
+            <FlatList
+              horizontal={true}
+              data={categoriesData}
+              keyExtractor={item => item.key}
+              renderItem={renderCategoryItem}
+            />
+          </View>
+
+          {/* End footer */}
         </View>
+
+        {/* End container */}
       </View>
     </TouchableWithoutFeedback>
-    // </MenuProductsContext.Provider>
   );
 }
 
@@ -433,10 +387,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundApp,
   },
   header: {
-    // flex: 0.2,
     paddingTop: 20,
-    // justifyContent: 'flex-start',
     alignItems: 'center',
+  },
+  menuStandardContainer: {
+    marginLeft: 5,
+    marginRight: 5,
+    paddingTop: 10,
+    height: height * 0.5,
+  },
+  menuContainer: {
+    marginRight: 10,
+    width: menu_container_width,
+    height: 360,
+    borderRadius: 16,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+    backgroundColor: colors.white,
   },
   searchBar: {
     display: 'flex',
@@ -481,28 +454,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginLeft: 10,
-    marginTop: height - 800,
+    marginTop: height - height * 0.99,
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
-  menuContainer: {
-    marginLeft: 30,
-    marginRight: 10,
-    right: 30,
-    width: menu_container_width,
-    height: 360,
-    borderRadius: 16,
-    shadowColor: '#000000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.27,
-    shadowRadius: 4.65,
-    elevation: 6,
-    backgroundColor: colors.white,
-  },
+
   menu_standard_image: {
     width: menu_container_width,
     height: 280,
@@ -524,10 +481,9 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   categories: {
-    flex: 1,
-    justifyContent: 'flex-start',
+    display: 'flex',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: -height + 700,
   },
   categories_container: {
     marginTop: 3,
@@ -552,6 +508,11 @@ const styles = StyleSheet.create({
   category_image: {
     width: 50,
     height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  orders: {
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
   },

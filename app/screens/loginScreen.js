@@ -11,18 +11,22 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  Alert,
   TouchableHighlight,
 } from 'react-native';
 import colors from '../../config/colors/colors';
 import {AuthContext} from '../../config/context';
 import * as Animatable from 'react-native-animatable';
+import api_axios from '../../config/api/api_axios';
 // import {LoginButton, AccessToken} from 'react-native-fbsdk-next';
+import axios from 'axios';
 import {Icon} from 'react-native-elements';
 import {
   GoogleSignin,
   GoogleSigninButton,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
+
 GoogleSignin.configure({
   // scopes: ['https://www.googleapis.com/auth/drive.readonly'], // [Android] what API you want to access on behalf of the user, default is email and profile
   webClientId:
@@ -74,20 +78,98 @@ function Login({navigation}) {
     navigation.navigate('RegisterScreen');
   };
 
+  const goToConfirmCode = IDUSER => {
+    navigation.navigate('ConfirmCodeScreen', {idUser: IDUSER});
+  };
   const changePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
   const ForgotPassword = () => {};
-  const loginHandler = () => {
+
+  const loginHandler = async () => {
     if (
       !invalidInput.emailError &&
       !invalidInput.passwordError &&
       String(userInfo.email).length !== 0 &&
       String(userInfo.password).length !== 0
     ) {
-      setTextError('');
-      login();
+      //api
+      try {
+        const loginData = JSON.stringify({
+          Email: userInfo.email,
+          Password: userInfo.password,
+        });
+
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+
+        const response = await api_axios.post('/buyers/login', loginData, {
+          headers,
+        });
+
+        const result = response.data;
+        var emailFromAPI = String(result.email);
+
+        var passwordFromAPI = String(result.password);
+
+        var genderFromAPI = String(result.gender);
+        var firstnameFromAPI = String(result.firstName);
+
+        var lastnameFromAPI = String(result.lastName);
+
+        var phonenumberFromAPI = String(result.phoneNumber);
+
+        var balanceFromAPI = Number(result.balance);
+
+        let confirmed = result.confirmed;
+        console.log(balanceFromAPI);
+        const sendUserData = {
+          id: result.id,
+          email: emailFromAPI,
+          firstName: firstnameFromAPI,
+          lastName: lastnameFromAPI,
+          phoneNumber: phonenumberFromAPI,
+          gender: genderFromAPI,
+          password: passwordFromAPI,
+          confirmed: confirmed,
+          balance: balanceFromAPI,
+        };
+
+        if (userInfo.email === emailFromAPI) {
+          if (confirmed) {
+            setTextError('');
+            login(sendUserData);
+            console.log('login');
+          } else {
+            //apare fereastra daca vrea sa isi confirme
+            Alert.alert(
+              'Cont neconfirmat',
+              'Contul dumneavoastra nu este confirmat! Doriti sa va confirmati contul?',
+              [
+                {
+                  text: 'NU',
+                  style: 'cancel',
+                },
+                {
+                  text: 'DA',
+                  onPress: () => {
+                    goToConfirmCode(sendUserData.id);
+                  },
+                },
+              ],
+            );
+          }
+        }
+      } catch (e) {
+        console.log(e.response.status);
+        if (e.response.status === 404) {
+          setTextError('Emailul sau parola nu sunt corecte!');
+        }
+      }
     } else {
       if (
         String(userInfo.email).length === 0 ||
@@ -147,13 +229,13 @@ function Login({navigation}) {
   };
 
   const onFocusPassword = val => {
-    if (!String(val).match(new RegExp(/[!@#$%^&*]/))) {
-      setInvalidInput({
-        ...invalidInput,
-        passwordError: true,
-        passwordTypeError: 'Parola trebuie sa contina !@#$%^&*',
-      });
-    }
+    // if (!String(val).match(new RegExp(/[!@#$%^&*]/))) {
+    //   setInvalidInput({
+    //     ...invalidInput,
+    //     passwordError: true,
+    //     passwordTypeError: 'Parola trebuie sa contina !@#$%^&*',
+    //   });
+    // }
     if (!String(val).match(new RegExp(/[0-9]/))) {
       setInvalidInput({
         ...invalidInput,
@@ -162,11 +244,11 @@ function Login({navigation}) {
       });
     }
 
-    if (String(val).length < 6 || String(val).length > 16) {
+    if (String(val).length < 8 || String(val).length > 255) {
       setInvalidInput({
         ...invalidInput,
         passwordError: true,
-        passwordTypeError: 'Parola trebuie sa fie intre 6-16 caractere',
+        passwordTypeError: 'Parola trebuie sa fie intre 8-255 caractere',
       });
     }
   };
@@ -180,8 +262,7 @@ function Login({navigation}) {
   };
 
   const validatePassword = password => {
-    var regularExpression =
-      /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+    var regularExpression = /^(?=.*[0-9])(?=.*)[a-zA-Z0-9]{8,255}$/;
     return String(password).match(regularExpression);
   };
 
@@ -274,6 +355,7 @@ function Login({navigation}) {
                 secureTextEntry={passwordVisible}
                 placeholderTextColor={colors.backgroundButtonActive}
               />
+
               <TouchableOpacity
                 style={[styles.icon, {paddingRight: 10}]}
                 onPress={() => changePasswordVisibility()}>

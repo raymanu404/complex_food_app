@@ -12,14 +12,19 @@ import {
   Keyboard,
   ScrollView,
   TouchableHighlight,
+  ToastAndroid,
 } from 'react-native';
+import {RadioButton} from 'react-native-paper';
 import {AuthContext} from '../../config/context';
 import {Icon} from 'react-native-elements';
 import colors from '../../config/colors/colors';
 import * as Animatable from 'react-native-animatable';
+import api_axios from '../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 40;
 
 function Register({navigation}) {
   const {register} = useContext(AuthContext);
@@ -39,6 +44,7 @@ function Register({navigation}) {
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
   const phoneRef = useRef(null);
+  const genderRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const re_passwordRef = useRef(null);
@@ -49,6 +55,7 @@ function Register({navigation}) {
     lastName: '',
     phone: '',
     email: '',
+    gender: '',
     password: '',
     re_password: '',
   });
@@ -57,11 +64,13 @@ function Register({navigation}) {
     firstNameError: false,
     lastNameError: false,
     phoneError: false,
+    genderError: false,
     emailError: false,
     passwordError: false,
     re_passwordError: false,
     passwordTypeError: '',
     re_passwordTypeError: '',
+    emptyFiledsError: '',
   });
 
   const [passwordVisible, setPasswordVisible] = useState({
@@ -134,6 +143,7 @@ function Register({navigation}) {
 
   // PHONE TEXT HANDLER
   const phoneTextHandler = val => {
+    console.log(typeof val);
     if (String(val).length !== 0 && validatePhone(val)) {
       setUserInfo({
         ...userInfo,
@@ -152,6 +162,36 @@ function Register({navigation}) {
       setInvalidInput({
         ...invalidInput,
         phoneError: true,
+      });
+    }
+    // } else {
+    //   setUserInfo({
+    //     ...userInfo,
+    //     phone: val,
+    //   });
+    //   setInvalidInput({
+    //     ...invalidInput,
+    //     phoneError: true,
+    //   });
+    // }
+  };
+
+  //GENDER RADIO HANDLER
+
+  const genderRadioHandler = val => {
+    if (val !== '') {
+      setUserInfo({
+        ...userInfo,
+        gender: val,
+      });
+    } else {
+      setUserInfo({
+        ...userInfo,
+        gender: val,
+      });
+      setInvalidInput({
+        ...invalidInput,
+        genderError: true,
       });
     }
   };
@@ -236,13 +276,6 @@ function Register({navigation}) {
   const onFocusPassword = (val, passowrdType) => {
     switch (passowrdType) {
       case 'password':
-        if (!String(val).match(new RegExp(/[!@#$%^&*]/))) {
-          setInvalidInput({
-            ...invalidInput,
-            passwordError: true,
-            passwordTypeError: 'Parola trebuie sa contina !@#$%^&*',
-          });
-        }
         if (!String(val).match(new RegExp(/[0-9]/))) {
           setInvalidInput({
             ...invalidInput,
@@ -251,11 +284,14 @@ function Register({navigation}) {
           });
         }
 
-        if (String(val).length < 6 || String(val).length > 16) {
+        if (
+          String(val).length < MIN_PASSWORD_LENGTH ||
+          String(val).length > MAX_PASSWORD_LENGTH
+        ) {
           setInvalidInput({
             ...invalidInput,
             passwordError: true,
-            passwordTypeError: 'Parola trebuie sa fie intre 6-16 caractere',
+            passwordTypeError: `Parola trebuie sa fie intre ${MIN_PASSWORD_LENGTH} - ${MAX_PASSWORD_LENGTH} caractere`,
           });
         }
         break;
@@ -272,8 +308,7 @@ function Register({navigation}) {
   };
 
   const validatePassword = password => {
-    var regularExpression =
-      /^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,16}$/;
+    var regularExpression = /^(?=.*[0-9])(?=.*)[a-zA-Z0-9]{8,40}$/;
     return String(password).match(regularExpression);
   };
 
@@ -289,7 +324,81 @@ function Register({navigation}) {
     return phone.match(/\d/g).length === 10;
   };
 
-  const registerHandler = () => {};
+  const showToastWithGravity = () => {
+    ToastAndroid.showWithGravity(
+      'Inregistrarea a fost cu succes!',
+      ToastAndroid.LONG,
+      ToastAndroid.CENTER,
+    );
+  };
+
+  const goToLoginScreen = () => {
+    navigation.navigate('LoginScreen');
+  };
+
+  const registerHandler = async () => {
+    try {
+      const verifyValidData =
+        !invalidInput.emailError &&
+        !invalidInput.firstNameError &&
+        !invalidInput.lastNameError &&
+        !invalidInput.genderError &&
+        !invalidInput.phoneError &&
+        !invalidInput.passwordError &&
+        !invalidInput.re_passwordError;
+
+      const emptyFields =
+        userInfo.email !== '' &&
+        userInfo.firstName !== '' &&
+        userInfo.lastName !== '' &&
+        userInfo.gender !== '' &&
+        userInfo.phone !== '' &&
+        userInfo.password !== '' &&
+        userInfo.re_password !== '';
+      if (verifyValidData && emptyFields) {
+        let userDataForRegister = {
+          buyer: {
+            email: userInfo.email,
+            password: userInfo.password,
+            firstName: userInfo.firstName,
+            lastName: userInfo.lastName,
+            phoneNumber: userInfo.phone,
+            gender: userInfo.gender,
+          },
+        };
+        setInvalidInput({
+          ...invalidInput,
+          emptyFiledsError: '',
+        });
+
+        api_axios
+          .post('/buyers/register', userDataForRegister)
+          .then(response => {
+            console.log(response.statusText);
+            if (response.data['email'] === userInfo.email) {
+              register();
+              showToastWithGravity();
+              goToLoginScreen();
+            }
+          })
+          .catch(e => {
+            if (e.response.status === 500) {
+              setInvalidInput({
+                ...invalidInput,
+                emptyFiledsError: 'Campuri invalide pentru inregistrare!',
+              });
+            }
+          });
+      } else {
+        setInvalidInput({
+          ...invalidInput,
+          emptyFiledsError: 'Campuri goale/invalide!',
+        });
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  };
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -315,7 +424,7 @@ function Register({navigation}) {
           keyboardDismissMode="on-drag"
           contentContainerStyle={{flexGrow: 1}}
           keyboardShouldPersistTaps="handled">
-          <View style={{flexDirection: 'column'}}>
+          <View style={styles.displayColumn}>
             {/* ------------------------------------- PRENUME --------------------------------------*/}
             <View
               style={
@@ -361,7 +470,7 @@ function Register({navigation}) {
             </Text>
           </View>
           {/* ------------------------------------- NUME --------------------------------------*/}
-          <View style={{flexDirection: 'column'}}>
+          <View style={styles.displayColumn}>
             <View
               style={
                 onFocusInput.lastNameOnFocus
@@ -401,8 +510,9 @@ function Register({navigation}) {
               {invalidInput.lastNameError ? 'Ex:Popescu' : ''}
             </Text>
           </View>
+
           {/* ------------------------------------- TELEFON --------------------------------------*/}
-          <View style={{flexDirection: 'column'}}>
+          <View style={styles.displayColumn}>
             <View
               style={
                 onFocusInput.phoneOnFocus
@@ -444,8 +554,43 @@ function Register({navigation}) {
             </Text>
           </View>
 
+          {/* ----------------------------------- GENDER ------------------------------ */}
+
+          <View style={styles.genderContainerParent}>
+            <RadioButton.Group
+              onValueChange={newValue => genderRadioHandler(newValue)}
+              value={userInfo.gender}>
+              <View style={styles.genderContainer}>
+                <View style={styles.genderItem}>
+                  <Text style={styles.genderTextItem}>Masculin</Text>
+                  <RadioButton
+                    value="M"
+                    color={colors.backgroundButtonActive}
+                  />
+                </View>
+                <View style={styles.genderItem}>
+                  <Text style={styles.genderTextItem}>Feminin</Text>
+                  <RadioButton
+                    value="F"
+                    color={colors.backgroundButtonActive}
+                  />
+                </View>
+                <View style={styles.genderItem}>
+                  <Text style={styles.genderTextItem}>Altceva</Text>
+                  <RadioButton
+                    value="N"
+                    color={colors.backgroundButtonActive}
+                  />
+                </View>
+              </View>
+            </RadioButton.Group>
+            <Text style={styles.textErrorInput}>
+              {invalidInput.genderError ? 'Selectati unul din optiuni' : ''}
+            </Text>
+          </View>
+
           {/* ---------------------------------- EMAIL -------------------------------*/}
-          <View style={{flexDirection: 'column'}}>
+          <View style={styles.displayColumn}>
             <View
               style={
                 onFocusInput.emailOnFocus
@@ -486,7 +631,7 @@ function Register({navigation}) {
             </Text>
           </View>
           {/* ------------------------------------- PAROLA -------------------------------------- */}
-          <View style={{flexDirection: 'column'}}>
+          <View style={styles.displayColumn}>
             <View
               style={
                 onFocusInput.passwordOnFocus
@@ -537,7 +682,7 @@ function Register({navigation}) {
             </Text>
           </View>
           {/* ------------------------------------- CONFIRMARE PAROLA --------------------------------------*/}
-          <View style={{flexDirection: 'column'}}>
+          <View style={styles.displayColumn}>
             <View
               style={
                 onFocusInput.re_passwordOnFocus
@@ -593,7 +738,15 @@ function Register({navigation}) {
                 : ''}
             </Text>
           </View>
-
+          <View>
+            <Text
+              style={[
+                styles.textErrorInput,
+                {fontSize: 15, color: colors.recycleBin, textAlign: 'center'},
+              ]}>
+              {invalidInput.emptyFiledsError}
+            </Text>
+          </View>
           <View style={styles.registerSection}>
             <TouchableHighlight
               underlayColor={colors.backgroundApp}
@@ -765,6 +918,32 @@ const styles = StyleSheet.create({
     color: colors.blackGrey,
     fontWeight: '700',
   },
+  genderContainerParent: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    marginLeft: 2,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingRight: 2,
+    marginLeft: 5,
+  },
+  genderItem: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginLeft: 5,
+  },
+  genderTextItem: {
+    fontSize: 14,
+    paddingTop: 6,
+    paddingRight: 2,
+    color: colors.backgroundButtonActive,
+    fontWeight: '600',
+  },
+  displayColumn: {flexDirection: 'column'},
 });
 
 export default Register;

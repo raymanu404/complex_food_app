@@ -9,14 +9,16 @@ import {
   Keyboard,
   FlatList,
   TouchableHighlight,
+  ToastAndroid,
 } from 'react-native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
-import colors from '../../config/colors/colors';
+import colors from '../../../config/colors/colors';
 import GestureFlipView from 'react-native-gesture-flip-card';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
-import {color} from 'react-native-reanimated';
-import {MenuProductsContext} from '../../config/context';
+import {MenuProductsContext} from '../../../App';
+import RenderEmptyList from '../../components/RenderEmptyList';
+import api_axios from '../../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -24,8 +26,16 @@ const menu_container_width = width - 50;
 
 function DetailsCategories({navigation, route}) {
   const [dataMenu, setDataMenu] = useState(route.params.menuDataForCategories);
+  const [textMessage, setTextMessage] = useState('');
   const data = route.params.menuDataForCategories;
-  const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
+
+  const buyerId = () => {
+    if (data.length !== 0) {
+      return data[0].buyerId;
+    }
+    return 1;
+  };
+  const resultBuyerId = buyerId();
 
   const removeFromQuantity = props => {
     console.log(props.quantity);
@@ -36,14 +46,24 @@ function DetailsCategories({navigation, route}) {
     }
   };
   const addToQuantity = props => {
+    console.log(dataMenu[props.myIndex].quantity);
+
     if (props.quantity < 20) {
       const newDataMenu = Object.assign({}, dataMenu);
       newDataMenu[props.myIndex].quantity = props.quantity + 1;
       setDataMenu(newDataMenu);
     }
   };
+  const showToastWithGravity = message => {
+    ToastAndroid.showWithGravity(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.CENTER,
+    );
+  };
 
-  const addToCard = props => {
+  const addToCard = async props => {
+    console.log(props.quantity);
     if (props.quantity > 0) {
       let addDetailsMenu = {
         key: dataMenu[props.myIndex].key,
@@ -54,11 +74,40 @@ function DetailsCategories({navigation, route}) {
         details: dataMenu[props.myIndex].details,
         quantity: dataMenu[props.myIndex].quantity + props.quantity,
       };
+      try {
+        const dataToSend = {
+          productId: addDetailsMenu.key,
+          cantity: data[props.myIndex].quantity,
+        };
+        console.log(dataToSend);
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+        const response = await api_axios.post(
+          `/shoppingItems/create/${resultBuyerId}`,
+          dataToSend,
+          headers,
+        );
 
-      setMenuDataInCart(menu => [...menu, addDetailsMenu]);
+        console.log(response.data);
+        if (response.status === 201 || response.status === 200) {
+          route.params.onGoBack(response.data);
+          showToastWithGravity('Produs adaugat in cos!'); //???nu stim de ce nu apar toast-le
+          setTextMessage('Produs adaugat in cos!');
+          refreshFeedbackText();
+        }
+      } catch (error) {
+        console.log(error.response.status);
+        if (error.response.status === 400) {
+          showToastWithGravity('Fonduri insuficiente!');
+          setTextMessage('Fonduri insuficiente!');
+          refreshFeedbackText();
+        }
+      }
     }
   };
-  // useEffect(() => {}, [menuDataInCart, dataMenu]);
 
   const renderFront = props => {
     return (
@@ -76,11 +125,10 @@ function DetailsCategories({navigation, route}) {
           {props.price} RON
         </Text>
         <View style={styles.buttonsAddRemoveQuantity}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => removeFromQuantity(props)}>
+          <TouchableOpacity activeOpacity={0.8}>
             <View style={styles.button}>
               <Icon
+                onPress={() => removeFromQuantity(props)}
                 name="remove-circle-outline"
                 type="ionicon"
                 size={40}
@@ -100,11 +148,10 @@ function DetailsCategories({navigation, route}) {
               {props.quantity}{' '}
             </Text>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => addToQuantity(props)}>
+          <TouchableOpacity activeOpacity={0.8}>
             <View style={styles.button}>
               <Icon
+                onPress={() => addToQuantity(props)}
                 name="add-circle-outline"
                 type="ionicon"
                 size={40}
@@ -113,9 +160,11 @@ function DetailsCategories({navigation, route}) {
             </View>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={() => addToCard(props)} activeOpacity={0.8}>
+        <TouchableOpacity activeOpacity={0.8}>
           <View style={styles.buttonForCart}>
-            <Text style={styles.buttonText}>Adauga in cos</Text>
+            <Text style={styles.buttonText} onPress={() => addToCard(props)}>
+              Adauga in cos
+            </Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -155,6 +204,12 @@ function DetailsCategories({navigation, route}) {
       myIndex={index}
     />
   );
+
+  const refreshFeedbackText = () => {
+    setTimeout(() => {
+      setTextMessage('');
+    }, 1000);
+  };
   return (
     <View style={styles.container}>
       <View style={{position: 'absolute', top: 5, left: 5}}>
@@ -167,11 +222,25 @@ function DetailsCategories({navigation, route}) {
         />
       </View>
       <View style={styles.menu_container}>
-        <FlatList
-          data={data}
-          renderItem={renderMenuItem}
-          keyExtractor={item => item.key}
-        />
+        {Array.from(data).length === 0 ? (
+          <RenderEmptyList
+            title_message={'Momentan nu exista acest tip de produs!'}
+          />
+        ) : (
+          <>
+            <FlatList
+              data={data}
+              renderItem={renderMenuItem}
+              keyExtractor={item => item.key}
+            />
+            <Animatable.Text
+              style={styles.feedbackMessage}
+              animation={'pulse'}
+              duration={800}>
+              {textMessage}
+            </Animatable.Text>
+          </>
+        )}
       </View>
     </View>
   );
@@ -189,7 +258,7 @@ const styles = StyleSheet.create({
   },
   menu_container: {
     flex: 1,
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingBottom: 60,
   },
@@ -214,7 +283,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   title_menu: {
-    fontFamily: 'Poppins',
     marginTop: 10,
     textAlign: 'center',
     fontSize: 18,
@@ -222,7 +290,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   price_menu: {
-    fontFamily: 'Poppins',
     marginTop: 12,
     textAlign: 'right',
     fontSize: 16,
@@ -232,7 +299,6 @@ const styles = StyleSheet.create({
   },
   details_text: {
     paddingVertical: 10,
-    fontFamily: 'Poppins',
     margin: 10,
     textAlign: 'left',
     fontSize: 18,
@@ -294,6 +360,12 @@ const styles = StyleSheet.create({
     borderColor: colors.backgroundButtonActive,
     justifyContent: 'flex-start',
     alignItems: 'center',
+  },
+  feedbackMessage: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: colors.backgroundButtonActive,
+    fontWeight: '600',
   },
 });
 export default DetailsCategories;

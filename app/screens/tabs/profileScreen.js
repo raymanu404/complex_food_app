@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect, useCallback} from 'react';
 import {
   View,
   StyleSheet,
@@ -17,6 +17,8 @@ import {
   Keyboard,
 } from 'react-native';
 import {AuthContext} from '../../../config/context';
+import {UserContext} from '../../../App';
+import api_axios from '../../../config/api/api_axios';
 import UserField from '../../components/UserField';
 import colors from '../../../config/colors/colors';
 import {Avatar, Icon} from 'react-native-elements';
@@ -32,31 +34,91 @@ import {
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = 300;
-const colorAvatar = 'rgb(214,205,25)';
+const colorAvatar = randomColor();
 
 function Profile({navigation}) {
   const {logout} = useContext(AuthContext);
+  const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  var [dataFromAPI, setDataFromAPI] = useState({});
+
+  useEffect(() => {
+    const getUserDataFromApi = async () => {
+      try {
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+        const response = await api_axios.get(
+          `/buyers/${userDataLogin.id || 2}`,
+          headers,
+        );
+
+        const responseCoupons = await api_axios.get(
+          `/coupons/${userDataLogin.id || 1}`,
+          headers,
+        );
+        const userDataFromApi = {
+          userData: response.data,
+          coupons: responseCoupons.data,
+        };
+        console.log(userDataFromApi);
+        //preluate si lista de cupoane
+        setDataFromAPI(userDataFromApi);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getUserDataFromApi();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [userData, setUserData] = useState({
-    firstName: 'Emanuel',
-    lastName: 'Caprariu',
-    email: 'test100@gmail.com',
-    phone: '072123141444',
-    balance: 100,
+    // eslint-disable-next-line no-bitwise
+    firstName: userDataLogin.firstName || 'Emanuel',
+    lastName: userDataLogin.lastName || 'Caprariu',
+    email: userDataLogin.email || 'test@email.com',
+    phone: userDataLogin.phonenumber || '072908231',
+    gender: userDataLogin.gender || 'M',
+    id: userDataLogin.id || 2,
+    balance: userDataLogin.balance || 0,
     tickets: [
-      {key: '15185152d', typeTicket: '10', number: 5},
-      {key: 'QRCODEDACAE', typeTicket: '20', number: 2},
-      {key: 'CODERANDOMDACAE', typeTicket: '30', number: 5},
+      {
+        key: '15185152d',
+        type: 1,
+        number:
+          Array.from(userDataLogin.coupons || []).filter(x => x.type === 1)
+            .length || 0,
+      },
+      {
+        key: 'QRCODEDACAE',
+        type: 2,
+        number:
+          Array.from(userDataLogin.coupons || []).filter(x => x.type === 2)
+            .length || 0,
+      },
+      {
+        key: 'CODERANDOMDACAE',
+        type: 3,
+        number:
+          Array.from(userDataLogin.coupons || []).filter(x => x.type === 3)
+            .length || 0,
+      },
     ],
-    password: '',
+    password: userDataLogin.password || '',
     re_password: '',
     colorUser: colorAvatar,
+  });
+
+  const [settingsMode, setSettingsMode] = useState({
     showBalance: false,
     showTickets: false,
     showSaveButton: false,
+    showSettingsMode: false,
+    showChangePassword: false,
   });
-  const [settingsMode, setSettingsMode] = useState(false);
-  const [changePassword, setChangePassword] = useState(false);
+
   const [dataSettings, setDataSettings] = useState({
     firstName: userData.firstName,
     lastName: userData.lastName,
@@ -65,25 +127,58 @@ function Profile({navigation}) {
   });
 
   const settingsModeHandler = () => {
-    console.log(settingsMode);
-    setSettingsMode(!settingsMode);
-    setUserData({...userData, showSaveButton: !userData.showSaveButton});
+    // setSettingsMode({
+    //   ...settingsMode,
+    //   showSaveButton: !settingsMode.showSaveButton,
+    //   showSettingsMode: !settingsMode.showSettingsMode,
+    //   showChangePassword: false,
+    // });
+
+    if (settingsMode.showSettingsMode) {
+      setSettingsMode({
+        ...settingsMode,
+        showSaveButton: false,
+        showSettingsMode: false,
+        showChangePassword: false,
+      });
+    } else {
+      setSettingsMode({
+        ...settingsMode,
+        showSaveButton: true,
+        showSettingsMode: true,
+        showChangePassword: false,
+      });
+    }
   };
 
   const showHideBalanceHandler = () => {
-    setUserData({
-      ...userData,
-      showBalance: !userData.showBalance,
+    setSettingsMode({
+      ...settingsMode,
+      showBalance: !settingsMode.showBalance,
     });
   };
 
+  const showToastWithGravity = message => {
+    ToastAndroid.showWithGravity(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.CENTER,
+    );
+  };
+
   const showHideTicketsHandler = () => {
-    if (userData.tickets.length === 0) {
-      ToastAndroid.show('Nu aveti cupoane disponibile!', ToastAndroid.CENTER);
+    var total = 0;
+    userData.tickets.forEach(x => {
+      if (x.number > 0) {
+        total += x.number;
+      }
+    });
+    if (total === 0) {
+      showToastWithGravity('Nu aveti cupoane disponibile!');
     } else {
-      setUserData({
+      setSettingsMode({
         ...userData,
-        showTickets: !userData.showTickets,
+        showTickets: !settingsMode.showTickets,
       });
     }
   };
@@ -104,8 +199,19 @@ function Profile({navigation}) {
   };
 
   const changePasswordHandler = () => {
-    setChangePassword(!changePassword);
-    setUserData({...userData, showSaveButton: true});
+    if (settingsMode.showSettingsMode) {
+      setSettingsMode({
+        ...settingsMode,
+        showSaveButton: true,
+        showChangePassword: !settingsMode.showChangePassword,
+      });
+    } else {
+      setSettingsMode({
+        ...settingsMode,
+        showSaveButton: !settingsMode.showSaveButton,
+        showChangePassword: !settingsMode.showChangePassword,
+      });
+    }
   };
 
   const depunereHandler = () => {
@@ -119,10 +225,13 @@ function Profile({navigation}) {
       lastName: dataSettings.lastName,
       email: dataSettings.email,
       phone: dataSettings.phone,
-      showSaveButton: false,
     });
-    setChangePassword(false);
-    setSettingsMode(false);
+    setSettingsMode({
+      ...settingsMode,
+      showSaveButton: false,
+      showSettingsMode: false,
+      showChangePassword: false,
+    });
     ToastAndroid.show(
       'Datele au fost modificate cu success!',
       ToastAndroid.CENTER,
@@ -196,37 +305,43 @@ function Profile({navigation}) {
                 alignItems: 'center',
               }}>
               <Text style={styles.text_balance}>
-                Sold: {userData.showBalance ? userData.balance : '****'} RON
+                SOLD:{' '}
+                {settingsMode.showBalance
+                  ? `${Number(userData.balance).toFixed(2)}`
+                  : '****'}{' '}
+                RON
               </Text>
               <TouchableOpacity
                 onPress={() => showHideBalanceHandler()}
                 activeOpacity={0.5}>
                 <Icon
-                  name={userData.showBalance ? 'eye' : 'eye-off'}
+                  name={settingsMode.showBalance ? 'eye' : 'eye-off'}
                   type={'feather'}
                   color={colors.white}
                   size={24}
                 />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => logoutHandler()}
-              activeOpacity={0.8}>
-              <UserField
-                widthStyle={120}
-                colorBackground={colors.blackGrey}
-                nameIcon={'exit-outline'}
-                typeIcon={'ionicon'}
-                labelField={'Logout'}
-                sizeIcon={26}
-              />
-            </TouchableOpacity>
+            <View style={styles.logoutButton}>
+              <TouchableOpacity
+                onPress={() => logoutHandler()}
+                activeOpacity={0.8}>
+                <UserField
+                  widthStyle={130}
+                  colorBackground={colors.blackGrey}
+                  nameIcon={'exit-outline'}
+                  typeIcon={'ionicon'}
+                  labelField={'Logout'}
+                  sizeIcon={26}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ScrollView style={styles.userProfile}>
             <View style={styles.userDataInfo}>
               <Text style={styles.textLabel}>Date personale</Text>
-              {!settingsMode ? (
+              {!settingsMode.showSettingsMode ? (
                 <>
                   <UserField
                     widthStyle={width - 30}
@@ -317,7 +432,7 @@ function Profile({navigation}) {
                   labelField={'Schimbare Parola'}
                 />
               </TouchableOpacity>
-              {changePassword ? (
+              {settingsMode.showChangePassword ? (
                 <>
                   <UserField
                     widthStyle={width - 30}
@@ -377,7 +492,9 @@ function Profile({navigation}) {
                     widthStyle={width - 30}
                     colorBackground={colors.blackGrey}
                     nameIcon={'ticket-outline'}
-                    arrowName={!userData.showTickets ? 'arrowup' : 'arrowdown'}
+                    arrowName={
+                      !settingsMode.showTickets ? 'arrowup' : 'arrowdown'
+                    }
                     typeIcon={'material-community'}
                     labelField={'Cupoanele mele'}
                     sizeIcon={26}
@@ -385,56 +502,58 @@ function Profile({navigation}) {
                   />
                   {/* </TouchableOpacity> */}
                 </CollapseHeader>
-                <CollapseBody>
-                  {userData.tickets.map(item => {
-                    switch (item.typeTicket) {
-                      case '10':
-                        return (
-                          <UserField
-                            nameIcon={'numeric-1-box-outline'}
-                            nameIcon2={'numeric-0-box-outline'}
-                            typeIcon={'material-community'}
-                            labelField={
-                              'Cupon ' + item.typeTicket + '% reducere'
-                            }
-                            sizeIcon={26}
-                            dataField={'Total:' + item.number}
-                            buttonStyle={styles.buttonStyle}
-                            typeOfTicket={item.typeTicket}
-                          />
-                        );
-                      case '20':
-                        return (
-                          <UserField
-                            nameIcon={'numeric-2-box-outline'}
-                            nameIcon2={'numeric-0-box-outline'}
-                            typeIcon={'material-community'}
-                            labelField={
-                              'Cupon ' + item.typeTicket + '% reducere'
-                            }
-                            sizeIcon={26}
-                            dataField={'Total:' + item.number}
-                            buttonStyle={styles.buttonStyle}
-                            typeOfTicket={item.typeTicket}
-                          />
-                        );
-                      case '30':
-                        return (
-                          <UserField
-                            nameIcon={'numeric-3-box-outline'}
-                            nameIcon2={'numeric-0-box-outline'}
-                            typeIcon={'material-community'}
-                            labelField={
-                              'Cupon ' + item.typeTicket + '% reducere'
-                            }
-                            sizeIcon={26}
-                            dataField={'Total:' + item.number}
-                            buttonStyle={styles.buttonStyle}
-                            typeOfTicket={item.typeTicket}
-                          />
-                        );
-                    }
-                  })}
+                <CollapseBody key={Math.random()}>
+                  {settingsMode.showTickets
+                    ? userData.tickets.map((item, index) => {
+                        switch (item.type) {
+                          case 1:
+                            return (
+                              <UserField
+                                nameIcon={'numeric-1-box-outline'}
+                                nameIcon2={'numeric-0-box-outline'}
+                                typeIcon={'material-community'}
+                                labelField={
+                                  'Cupon ' + item.type + '0 % reducere'
+                                }
+                                sizeIcon={26}
+                                dataField={'Total:' + item.number}
+                                buttonStyle={styles.buttonStyle}
+                                typeOfTicket={item.type}
+                              />
+                            );
+                          case 2:
+                            return (
+                              <UserField
+                                nameIcon={'numeric-2-box-outline'}
+                                nameIcon2={'numeric-0-box-outline'}
+                                typeIcon={'material-community'}
+                                labelField={
+                                  'Cupon ' + item.type + '0 % reducere'
+                                }
+                                sizeIcon={26}
+                                dataField={'Total:' + item.number}
+                                buttonStyle={styles.buttonStyle}
+                                typeOfTicket={item.type}
+                              />
+                            );
+                          case 3:
+                            return (
+                              <UserField
+                                nameIcon={'numeric-3-box-outline'}
+                                nameIcon2={'numeric-0-box-outline'}
+                                typeIcon={'material-community'}
+                                labelField={
+                                  'Cupon ' + item.type + '0 % reducere'
+                                }
+                                sizeIcon={26}
+                                dataField={'Total:' + item.number}
+                                buttonStyle={styles.buttonStyle}
+                                typeOfTicket={item.type}
+                              />
+                            );
+                        }
+                      })
+                    : null}
                   {/* {userData.showTickets ? (
                     <FlatList
                       renderItem={renderTicket}
@@ -446,15 +565,9 @@ function Profile({navigation}) {
               </Collapse>
             </View>
 
-            {userData.showSaveButton ? (
+            {settingsMode.showSaveButton ? (
               <>
-                <View
-                  style={{
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginBottom: 10,
-                    marginTop: -10,
-                  }}>
+                <View style={styles.settingsModeContainer}>
                   <TouchableOpacity
                     onPress={() => saveSettingsHandler()}
                     activeOpacity={0.8}>
@@ -490,8 +603,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editProfile: {
-    flex: 1,
-    marginRight: width - 160,
+    // flex: 1,
+    // marginRight: width - 160,
+    top: 5,
+    left: 10,
+    position: 'absolute',
+    zIndex: 10,
   },
   header: {
     flex: 1,
@@ -503,10 +620,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundButtonActive,
   },
   headerRight: {
-    marginLeft: width - 160,
+    top: 5,
+    right: 10,
+    position: 'absolute',
+    zIndex: 10,
   },
   userProfile: {
-    paddingTop: 10,
+    marginTop: 50,
   },
   text_balance: {
     textAlign: 'center',
@@ -536,6 +656,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: colors.black,
     fontWeight: '500',
+  },
+  settingsModeContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    marginTop: -10,
+  },
+  logoutButton: {
+    right: 4,
+    position: 'absolute',
+    top: 20,
+    zIndex: 15,
   },
 });
 export default Profile;

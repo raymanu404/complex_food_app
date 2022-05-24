@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   StyleSheet,
@@ -12,18 +12,101 @@ import {
   Keyboard,
   ScrollView,
   TouchableHighlight,
+  ToastAndroid,
+  Alert,
 } from 'react-native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import colors from '../../../config/colors/colors';
 import Ticket from '../../components/Ticket';
+import {UserContext} from '../../../App';
+import api_axios from '../../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = width - 50;
 
-function Tickets() {
-  const soldUser = 100;
+function Tickets({navigation}) {
+  const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  const [userInfo, setUserInfo] = useState({
+    idUser: userDataLogin.id || 1,
+    soldUser: userDataLogin.balance || 0,
+  });
+
+  const showToastWithGravity = message => {
+    ToastAndroid.showWithGravity(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.CENTER,
+    );
+  };
+
+  const paymentHandler = (amount, type) => {
+    try {
+      let headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+      };
+      const data = {
+        cantity: amount,
+        type: type,
+      };
+      const total_price =
+        type === 1 ? 10 : type === 2 ? 30 : type === 3 ? 50 : 0;
+      if (userInfo.soldUser >= total_price) {
+        Alert.alert(
+          'Acceptare tranzactie',
+          `Doriti sa faceti plata pentru ${amount} cupoane in valoare de ${
+            type === 1 ? 10 : type === 2 ? 30 : type === 3 ? 50 : 1
+          } RON`,
+          [
+            {
+              text: 'NU',
+              style: 'cancel',
+            },
+            {
+              text: 'DA',
+              onPress: async () => {
+                const response = await api_axios.post(
+                  `/coupons/buy_coupons/${userInfo.idUser}`,
+                  data,
+                  headers,
+                );
+                console.log(response.data);
+                if (
+                  response.data !== 'Insufficient funds!' &&
+                  response.data !== 'Error in Create Coupons'
+                ) {
+                  if (response.status === 201) {
+                    showToastWithGravity(
+                      'Tranzactia a fost facuta cu succes!\n Va multumim!',
+                    );
+                    setUserInfo({
+                      ...userInfo,
+                      soldUser: String(response.data),
+                    });
+                    setUserDataLogin({
+                      ...userDataLogin,
+                      balance: String(response.data),
+                    });
+                    navigation.navigate('HomeScreen');
+                  }
+                } else {
+                  showToastWithGravity('Fonduri insuficiente!!!');
+                }
+              },
+            },
+          ],
+        );
+      } else {
+        showToastWithGravity('Fonduri insuficiente!!!');
+      }
+    } catch (error) {
+      console.log(error.response.status);
+    }
+  };
+
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -32,16 +115,34 @@ function Tickets() {
       <View style={styles.container}>
         <View style={styles.balance_container}>
           <Text style={styles.text_balance}>
-            Sold disponibil : {soldUser} RON
+            Sold disponibil : {userInfo.soldUser} RON
           </Text>
         </View>
         <ScrollView style={{marginBottom: 20}}>
           {/* TICKET 10 RON  */}
-          <Ticket reducere={10} pret={10} cupoane={'1 Cupon'} />
+          <Ticket
+            reducere={10}
+            pret={10}
+            cupoane={'1 Cupon'}
+            payCoupon={() => paymentHandler(1, 1)}
+            type={1}
+          />
           {/* TICKET 30 RON  */}
-          <Ticket reducere={20} pret={30} cupoane={'3 Cupoane'} />
+          <Ticket
+            reducere={20}
+            pret={30}
+            cupoane={'3 Cupoane'}
+            payCoupon={() => paymentHandler(3, 2)}
+            type={2}
+          />
           {/* TICKET 50 RON  */}
-          <Ticket reducere={30} pret={50} cupoane={'5 Cupoane'} />
+          <Ticket
+            reducere={30}
+            pret={50}
+            cupoane={'5 Cupoane'}
+            payCoupon={() => paymentHandler(5, 3)}
+            type={3}
+          />
         </ScrollView>
       </View>
     </TouchableWithoutFeedback>
@@ -56,7 +157,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundApp,
   },
   balance_container: {
-    // flex: 1,
+    flex: 1,
     width: width,
     height: 50,
     backgroundColor: colors.backgroundBottomTabInactive,

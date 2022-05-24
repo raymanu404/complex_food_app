@@ -9,13 +9,17 @@ import {
   Keyboard,
   FlatList,
   TouchableHighlight,
+  ToastAndroid,
 } from 'react-native';
 import {Icon} from 'react-native-elements';
-import * as Animatable from 'react-native-animatable';
 import GestureFlipView from 'react-native-gesture-flip-card';
 import colors from '../../../config/colors/colors';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
-import {MenuProductsContext} from '../../../config/context';
+// import {MenuProductsContext} from '../../../config/context';
+import {UserContext} from '../../../App';
+import RenderEmptyList from '../../components/RenderEmptyList';
+import ConfirmedOrder from '../../components/ConfirmedOrder';
+import api_axios from '../../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -31,67 +35,59 @@ const enum_categories = {
   STANDARD: 'standard',
 };
 
-function Cart() {
-  const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
-  // const [dataFromCart, setDataFromCart] = useState(menuDataInCart);
-
-  // const [dataFromCart, setDataFromCart] = useState([
-  //   {
-  //     key: 'augfahgagag2aifgahfpj',
-  //     src: require('../../assets/14.jpg'),
-  //     title: 'Cheese Cake',
-  //     price: 5.99,
-  //     quantity: 2,
-  //     category: enum_categories.STANDARD,
-  //     details:
-  //       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-  //   },
-  //   {
-  //     key: 'aafag222222222gagafpj',
-  //     src: require('../../assets/13.jpg'),
-  //     title: 'Cheese Cake',
-  //     price: 5.99,
-  //     quantity: 2,
-  //     category: enum_categories.STANDARD,
-  //     details:
-  //       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-  //   },
-  //   {
-  //     key: 'augfahgagafpj',
-  //     src: require('../../assets/17.jpg'),
-  //     title: 'Cheese Cake',
-  //     price: 5.99,
-  //     quantity: 2,
-  //     category: enum_categories.STANDARD,
-  //     details:
-  //       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-  //   },
-  //   {
-  //     key: 'augfahgag2pj',
-  //     src: require('../../assets/16.jpg'),
-  //     title: 'Cheese Cake',
-  //     price: 5.99,
-  //     quantity: 2,
-  //     category: enum_categories.STANDARD,
-  //     details:
-  //       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-  //   },
-  // ]);
+function Cart({navigation}) {
+  // const [menuDataInCart, setMenuDataInCart] = useContext(UserContext);
+  const [menuDataInCart, setMenuDataInCart] = useState([]);
+  const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  const buyerID = userDataLogin.id || 1;
+  const cartID = userDataLogin.cartId;
+  console.log('CARTID : ', cartID);
+  const [couponCode, setCouponCode] = useState('default');
   const [totalPrice, setTotalPrice] = useState(0);
+  const [confirmCart, setConfirmCart] = useState({
+    confirmed: false,
+    orderCode: '',
+  });
 
   useEffect(() => {
-    console.log(menuDataInCart);
-    if (menuDataInCart.length !== 0) {
-      computeTotalOfPrice();
-    }
-  });
+    const getDataFromCart = async () => {
+      try {
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+        const response = await api_axios.get(
+          `/shoppingItems/${cartID}`,
+          headers,
+        );
+        //ar trebui dupa buyerId sa selectam cartul
+        //de facut un select cu toate produsele si pretul lor daca nu merge partea de useContext
+        console.log(response.data);
+        if (response.status === 200) {
+          setMenuDataInCart(response.data);
+          setConfirmCart({
+            ...confirmCart,
+            confirmed: false,
+          });
+          computeTotalOfPrice();
+        }
+      } catch (error) {
+        console.log(error.response.status);
+      }
+    };
+
+    getDataFromCart();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   //Calculate total of price HERE
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const computeTotalOfPrice = () => {
     let sum = 0.0;
     menuDataInCart.map(element => {
-      sum += element.price * element.quantity;
+      sum += element.price * element.cantity;
     });
     setTotalPrice(sum.toFixed(2));
   };
@@ -117,7 +113,7 @@ function Cart() {
   //Remove item from cart
   const removeItemFromCart = props => {
     setMenuDataInCart(myNewMenu =>
-      myNewMenu.filter(el => el.key !== props.myKey),
+      myNewMenu.filter(el => el.id !== props.myKey),
     );
   };
 
@@ -143,11 +139,9 @@ function Cart() {
             style={[styles.price_menu, {color: colors.backgroundButtonActive}]}>
             {props.price * props.quantity} RON
           </Text>
-          <TouchableOpacity
-            style={styles.icon_trash}
-            activeOpacity={0.6}
-            onPress={() => removeItemFromCart(props)}>
+          <TouchableOpacity style={styles.icon_trash} activeOpacity={0.6}>
             <Icon
+              onPress={() => removeItemFromCart(props)}
               name={'trash-bin-outline'}
               type={'ionicon'}
               size={32}
@@ -188,38 +182,123 @@ function Cart() {
 
   const renderMenuItem = ({item, index}) => (
     <MenuItem
-      src={item.src}
+      src={item.image}
       title={item.title}
       price={item.price}
-      details={item.details}
-      myKey={item.key}
-      quantity={item.quantity}
+      details={item.description}
+      myKey={item.id}
+      quantity={item.cantity}
+      dateCreate={item.dateCreated}
     />
   );
 
+  const setCodeCouponHandler = code => {
+    setCouponCode(code);
+  };
+  const applyUserCouponHandler = () => {
+    console.log(buyerID);
+    navigation.navigate('CouponsListScreen', {
+      buyerID: buyerID,
+      onGoBack: setCodeCouponHandler,
+    });
+  };
+  const showToastWithGravity = message => {
+    ToastAndroid.showWithGravity(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.CENTER,
+    );
+  };
+
+  const deleteCartHandler = async () => {
+    try {
+      let headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+      };
+
+      const response = await api_axios.delete(
+        `/carts/delete/${buyerID}`,
+        headers,
+      );
+      console.log(response.data);
+      const responseMessage = response.data;
+      if (String(responseMessage) === 'Success!') {
+        showToastWithGravity('Cosul a fost sters cu succes!');
+        setMenuDataInCart([]);
+      }
+    } catch (error) {
+      console.log(error.response.status);
+      showToastWithGravity('Cosul nu a fost gasit!');
+    }
+  };
+
+  const confirmCommandHandler = async () => {
+    console.log('confirm');
+    try {
+      let headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+      };
+
+      let couponCodeFromBuyer = {
+        couponCart: couponCode,
+      };
+
+      const response = await api_axios.patch(
+        `/carts/confirm/${buyerID}`,
+        couponCodeFromBuyer,
+        headers,
+      );
+      console.log(response.data);
+      const orderCodeFromResponse = response.data;
+      if (String(orderCodeFromResponse).startsWith('OrderCode')) {
+        const orderCode = String(orderCodeFromResponse).split(':')[1];
+        showToastWithGravity('Comanda a fost plasata!');
+        setMenuDataInCart([]);
+        setConfirmCart({
+          ...confirmCart,
+          confirmed: true,
+          orderCode: orderCode,
+        });
+        // navigation.goBack();
+      }
+    } catch (error) {
+      console.log(error.response.status);
+    }
+  };
   return (
     <View style={styles.container}>
-      {menuDataInCart.length !== 0 ? (
+      {confirmCart.confirmed ? (
+        <ConfirmedOrder
+          title_message="Multumim pentru comanda!"
+          orderCode={confirmCart.orderCode}
+        />
+      ) : menuDataInCart.length !== 0 ? (
         <View style={styles.menu_container}>
           <FlatList
             renderItem={renderMenuItem}
-            keyExtractor={item => item.key}
+            keyExtractor={item => item.id}
             data={menuDataInCart}
           />
           <View style={styles.payment_container}>
             <View style={styles.payment_view}>
-              <TouchableOpacity
-                onPress={() => console.log()}
-                activeOpacity={0.8}>
+              <TouchableOpacity activeOpacity={0.8}>
                 <View style={styles.button}>
-                  <Text style={styles.buttonText}>Aplica Cupon</Text>
+                  <Text
+                    style={styles.buttonText}
+                    onPress={applyUserCouponHandler}>
+                    Aplica Cupon
+                  </Text>
                 </View>
               </TouchableOpacity>
 
               <View
                 style={[
                   styles.button,
-                  {backgroundColor: colors.white, width: 200},
+                  {backgroundColor: colors.white, width: 160},
                 ]}>
                 <Text
                   style={[
@@ -230,25 +309,29 @@ function Cart() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity onPress={() => console.log()} activeOpacity={0.8}>
+            <View style={styles.deleteCartIcon}>
+              <Text style={styles.textDeleteCart}>Golire cos</Text>
+              <Icon
+                onPress={() => deleteCartHandler()}
+                name={'trash-bin-outline'}
+                type={'ionicon'}
+                size={32}
+                color={colors.recycleBin}
+              />
+            </View>
+            <TouchableOpacity activeOpacity={0.8}>
               <View style={styles.button}>
-                <Text style={styles.buttonText}>Plateste</Text>
+                <Text
+                  style={styles.buttonText}
+                  onPress={() => confirmCommandHandler()}>
+                  Plateste
+                </Text>
               </View>
             </TouchableOpacity>
           </View>
         </View>
       ) : (
-        <Animatable.View
-          style={styles.cart_empty_container}
-          animation={'pulse'}
-          duration={800}>
-          <Image
-            resizeMode="contain"
-            source={require('../../assets/empty_cart-removebkg.png')}
-            style={styles.image}
-          />
-          <Text style={styles.title_menu}>Cosul este gol!</Text>
-        </Animatable.View>
+        <RenderEmptyList title_message={'Cosul este gol!'} />
       )}
     </View>
   );
@@ -303,14 +386,12 @@ const styles = StyleSheet.create({
   title_menu: {
     paddingBottom: 25,
     paddingVertical: 8,
-    fontFamily: 'Poppins',
     fontSize: 18,
     textAlign: 'center',
     color: colors.blackGrey,
     fontWeight: '700',
   },
   price_menu: {
-    fontFamily: 'Poppins',
     textAlign: 'center',
     fontSize: 17,
     color: colors.white,
@@ -320,7 +401,6 @@ const styles = StyleSheet.create({
   details_text: {
     paddingVertical: 10,
     paddingBottom: 10,
-    fontFamily: 'Poppins',
     margin: 10,
     textAlign: 'left',
     fontSize: 18,
@@ -330,7 +410,7 @@ const styles = StyleSheet.create({
   button: {
     alignSelf: 'center',
     justifyContent: 'center',
-    width: 150,
+    width: 140,
     height: 40,
     marginBottom: 10,
     borderRadius: 16,
@@ -362,6 +442,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignContent: 'center',
+  },
+  deleteCartIcon: {
+    flexDirection: 'row',
+    marginTop: -10,
+    width: 100,
+    marginLeft: width * 0.65,
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+  },
+  textDeleteCart: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.recycleBin,
+    letterSpacing: 1,
   },
 });
 

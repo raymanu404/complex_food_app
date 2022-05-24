@@ -26,6 +26,8 @@ target 'complex_food_v1' do
 
   pod 'tipsi-stripe', :path => '../node_modules/tipsi-stripe'
 
+  pod 'stripe-react-native', :path => '../node_modules/@stripe/stripe-react-native'
+
   target 'complex_food_v1Tests' do
     inherit! :complete
     # Pods for testing

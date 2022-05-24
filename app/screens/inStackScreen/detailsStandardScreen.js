@@ -12,19 +12,24 @@ import {
   Keyboard,
   ScrollView,
   TouchableHighlight,
+  ToastAndroid,
 } from 'react-native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
-import colors from '../../config/colors/colors';
-import {MenuProductsContext} from '../../config/context';
+import colors from '../../../config/colors/colors';
+import {MenuProductsContext, UserContext} from '../../../App';
+import api_axios from '../../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = width - 50;
 
 function DetailsStandard({navigation, route}) {
-  const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
-  const [quantity, setQuantity] = useState(0);
+  // const [menuDataInCart, setMenuDataInCart] = useContext(UserContext);
+  const [menuDataInCart, setMenuDataInCart] = useState(
+    route.params.menuStandardObj,
+  );
+  const [quantity, setQuantity] = useState(menuDataInCart.quantity);
   const removeFromQuantity = () => {
     if (quantity > 0) {
       setQuantity(quantity - 1);
@@ -36,24 +41,66 @@ function DetailsStandard({navigation, route}) {
       setQuantity(quantity + 1);
     }
   };
+  const showToastWithGravity = message => {
+    ToastAndroid.showWithGravity(
+      message,
+      ToastAndroid.SHORT,
+      ToastAndroid.CENTER,
+    );
+  };
 
-  const addToCart = () => {
-    if (quantity !== 0) {
-      let addStandardMenu = {
-        key: route.params.key,
-        src: route.params.src,
-        title: route.params.title,
-        price: route.params.price,
-        category: route.params.category,
-        details: route.params.details,
-        quantity: route.params.quantity + quantity,
-      };
-      // console.log(addStandardMenu);
-      setMenuDataInCart(menu => [...menu, addStandardMenu]);
-      // navigation.goBack();
+  const addToCart = async () => {
+    try {
+      if (quantity !== 0) {
+        let addStandardMenu = {
+          key: menuDataInCart.key,
+          src: menuDataInCart.src,
+          title: menuDataInCart.title,
+          price: menuDataInCart.price,
+          category: menuDataInCart.category,
+          details: menuDataInCart.details,
+          quantity: menuDataInCart.quantity + quantity,
+        };
+
+        // setMenuDataInCart({
+        //   ...menuDataInCart,
+        //   menuDataInCart: addStandardMenu,
+        // });
+
+        const dataToSend = {
+          productId: menuDataInCart.key,
+          cantity: addStandardMenu.quantity,
+        };
+        console.log(dataToSend);
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+        const response = await api_axios.post(
+          `/shoppingItems/create/${menuDataInCart.userId}`,
+          dataToSend,
+          headers,
+        );
+        console.log(response.data);
+        if (response.status === 201 || response.status === 200) {
+          showToastWithGravity('Produs adaugat in cos!');
+          route.params.onGoBack(response.data);
+          // navigation.goBack();
+        }
+      }
+    } catch (error) {
+      console.log(error.response.status);
+      if (error.response.status === 400) {
+        showToastWithGravity('Fonduri insuficiente!');
+      }
     }
   };
-  // useEffect(() => {}, [menuDataInCart]);
+  // useEffect(() => {
+  //   return () => {
+  //     menuDataInCart;
+  //   };
+  // }, [menuDataInCart]);
   return (
     <View style={styles.container}>
       <View style={{position: 'absolute', top: 5, left: 5}}>
@@ -71,7 +118,7 @@ function DetailsStandard({navigation, route}) {
           animation={'bounceIn'}
           duration={800}>
           <Image
-            source={route.params.src}
+            source={menuDataInCart.src}
             style={styles.image}
             resizeMode="cover"
           />
@@ -81,8 +128,8 @@ function DetailsStandard({navigation, route}) {
             styles.image_container,
             {width: menu_container_width, marginBottom: 80},
           ]}>
-          <Text style={styles.title_menu}>{route.params.title}</Text>
-          <Text style={styles.price_menu}>{route.params.price} RON</Text>
+          <Text style={styles.title_menu}>{menuDataInCart.title}</Text>
+          <Text style={styles.price_menu}>{menuDataInCart.price} RON</Text>
           <Text
             style={[
               styles.details_text,
@@ -90,13 +137,12 @@ function DetailsStandard({navigation, route}) {
             ]}>
             Ingrediente
           </Text>
-          <Text style={styles.details_text}>{route.params.details} </Text>
+          <Text style={styles.details_text}>{menuDataInCart.details} </Text>
           <View style={styles.buttonsAddRemoveQuantity}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => removeFromQuantity()}>
+            <TouchableOpacity activeOpacity={0.8}>
               <View style={styles.button}>
                 <Icon
+                  onPress={() => removeFromQuantity()}
                   name="remove-circle-outline"
                   type="ionicon"
                   size={40}
@@ -110,14 +156,13 @@ function DetailsStandard({navigation, route}) {
                   styles.title_menu,
                   {color: colors.backgroundButtonActive, fontSize: 28},
                 ]}>
-                {quantity}{' '}
+                {`${quantity}`}{' '}
               </Text>
             </View>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => addToQuantity()}>
+            <TouchableOpacity activeOpacity={0.8}>
               <View style={styles.button}>
                 <Icon
+                  onPress={() => addToQuantity()}
                   name="add-circle-outline"
                   type="ionicon"
                   size={40}
