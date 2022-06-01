@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   StyleSheet,
@@ -16,7 +16,6 @@ import * as Animatable from 'react-native-animatable';
 import colors from '../../../config/colors/colors';
 import GestureFlipView from 'react-native-gesture-flip-card';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
-import {MenuProductsContext} from '../../../App';
 import RenderEmptyList from '../../components/RenderEmptyList';
 import api_axios from '../../../config/api/api_axios';
 
@@ -45,6 +44,7 @@ function DetailsCategories({navigation, route}) {
       setDataMenu(newDataMenu);
     }
   };
+
   const addToQuantity = props => {
     console.log(dataMenu[props.myIndex].quantity);
 
@@ -54,6 +54,7 @@ function DetailsCategories({navigation, route}) {
       setDataMenu(newDataMenu);
     }
   };
+
   const showToastWithGravity = message => {
     ToastAndroid.showWithGravity(
       message,
@@ -93,7 +94,7 @@ function DetailsCategories({navigation, route}) {
 
         console.log(response.data);
         if (response.status === 201 || response.status === 200) {
-          route.params.onGoBack(response.data);
+          // route.params.onGoBack(response.data);
           showToastWithGravity('Produs adaugat in cos!'); //???nu stim de ce nu apar toast-le
           setTextMessage('Produs adaugat in cos!');
           refreshFeedbackText();
@@ -112,7 +113,11 @@ function DetailsCategories({navigation, route}) {
   const renderFront = props => {
     return (
       <View style={[styles.image_container, {backgroundColor: colors.white}]}>
-        <Image source={props.src} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{uri: props.src}}
+          style={styles.image}
+          resizeMode="cover"
+        />
         <Text
           style={[styles.title_menu, {color: colors.backgroundButtonActive}]}>
           {props.title}
@@ -178,7 +183,7 @@ function DetailsCategories({navigation, route}) {
         <Text style={styles.price_menu}>{props.price} RON</Text>
         <Text
           style={[styles.details_text, {fontWeight: '700', marginBottom: -10}]}>
-          Ingrediente
+          Detalii produs
         </Text>
         <ScrollView>
           <Text style={styles.details_text}>{props.details} </Text>

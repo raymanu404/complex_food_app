@@ -19,7 +19,7 @@ import {AuthContext} from '../../config/context';
 import * as Animatable from 'react-native-animatable';
 import api_axios from '../../config/api/api_axios';
 // import {LoginButton, AccessToken} from 'react-native-fbsdk-next';
-import axios from 'axios';
+
 import {Icon} from 'react-native-elements';
 import {
   GoogleSignin,
@@ -79,13 +79,18 @@ function Login({navigation}) {
   };
 
   const goToConfirmCode = IDUSER => {
-    navigation.navigate('ConfirmCodeScreen', {idUser: IDUSER});
+    navigation.navigate('ConfirmCodeScreen', {
+      idUser: IDUSER,
+      forgotPassword: false,
+    });
   };
   const changePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
-  const ForgotPassword = () => {};
+  const forgotPasswordHandler = () => {
+    navigation.navigate('SendEmailScreen');
+  };
 
   const loginHandler = async () => {
     if (
@@ -113,20 +118,14 @@ function Login({navigation}) {
 
         const result = response.data;
         var emailFromAPI = String(result.email);
-
         var passwordFromAPI = String(result.password);
-
         var genderFromAPI = String(result.gender);
         var firstnameFromAPI = String(result.firstName);
-
         var lastnameFromAPI = String(result.lastName);
-
         var phonenumberFromAPI = String(result.phoneNumber);
-
         var balanceFromAPI = Number(result.balance);
-
         let confirmed = result.confirmed;
-        console.log(balanceFromAPI);
+
         const sendUserData = {
           id: result.id,
           email: emailFromAPI,
@@ -372,7 +371,7 @@ function Login({navigation}) {
           </View>
 
           <TouchableOpacity
-            onPress={() => ForgotPassword()}
+            onPress={() => forgotPasswordHandler()}
             style={{marginTop: -10}}>
             <Text style={styles.text}>Ai uitat parola?</Text>
           </TouchableOpacity>
@@ -395,7 +394,7 @@ function Login({navigation}) {
                 </Text>
               </View>
             </TouchableHighlight> */}
-            <TouchableHighlight
+            {/* <TouchableHighlight
               onPress={() => signIn()}
               underlayColor={colors.white}>
               <View
@@ -412,7 +411,7 @@ function Login({navigation}) {
                 />
                 <Text style={styles.buttonText}>Conecteaza-te prin Gmail</Text>
               </View>
-            </TouchableHighlight>
+            </TouchableHighlight> */}
             {/* <GoogleSigninButton
               onPress={signIn}
               size={GoogleSigninButton.Size.Wide}

@@ -26,6 +26,18 @@ function Coupon(props) {
         return '10% reducere';
     }
   };
+  const getDateFormat = () => {
+    let newFormatDate = String(props.dateCreated).split('T');
+    let orderDate = newFormatDate[0];
+    let orderTime = newFormatDate[1].slice(0, newFormatDate[1].length - 11);
+    if (orderTime.length === 4) {
+      orderTime = `${orderTime}0`;
+    }
+    if (orderTime.length === 3) {
+      orderTime = `${orderTime}00`;
+    }
+    return `Cupon achizitionat: ${orderTime} / ${orderDate}`;
+  };
   return (
     <View
       style={
@@ -37,7 +49,7 @@ function Coupon(props) {
           ? styles.ticket_container30
           : styles.ticket_container10
       }>
-      <Text style={styles.text_ticket}>{props.dateCreated}</Text>
+      <Text style={styles.text_ticket}>{getDateFormat()}</Text>
       <View style={styles.ticket_info}>
         <Text style={styles.text_reducere}>
           Tip cupon: {typeOfCoupon(props.type)}
@@ -47,9 +59,11 @@ function Coupon(props) {
         </Text>
       </View>
       <TouchableOpacity onPress={props.applyCoupon} activeOpacity={0.8}>
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>Aplica cupon</Text>
-        </View>
+        {!props.userMode ? (
+          <View style={styles.button}>
+            <Text style={styles.buttonText}>Aplica cupon</Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
     </View>
   );
@@ -111,7 +125,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ticket30,
   },
   text_ticket: {
-    fontSize: 20,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: '700',
     color: colors.white,

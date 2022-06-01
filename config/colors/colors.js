@@ -13,4 +13,7 @@ export default {
   ticket10: '#9BA3EB',
   ticket20: '#827397',
   ticket30: '#363062',
+  statusOrderPlaced: '#FFE3A9',
+  statusOrderInProgress: '#C2DED1',
+  statusOrderDone: '#14C38E',
 };

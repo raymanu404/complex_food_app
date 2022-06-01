@@ -16,13 +16,18 @@ import DetailsCategories from './app/screens/inStackScreen/detailsCategoriesScre
 import DetailsStandard from './app/screens/inStackScreen/detailsStandardScreen';
 import ConfirmCode from './app/screens/inStackScreen/ConfirmCodeScreen';
 import CouponsList from './app/screens/inStackScreen/CouponsListScreen';
+import OrdersScreen from './app/screens/inStackScreen/OrdersScreen';
+import OrderItemsScreen from './app/screens/inStackScreen/OrderItemsScreen';
+import CheckoutPayment from './app/screens/inStackScreen/CheckoutPayment';
+import ForgotPassword from './app/screens/inStackScreen/SendEmailScreen';
+import SendEmail from './app/screens/inStackScreen/SendEmailScreen';
 
 //tabs
 import Home from './app/screens/tabs/homeScreen';
 import Cart from './app/screens/tabs/cartScreen';
 import Tickets from './app/screens/tabs/ticketsScreen';
 import Profile from './app/screens/tabs/profileScreen';
-import PayDesk from './app/components/Paydesk';
+import PayDesk from './app/screens/inStackScreen/Paydesk';
 
 //useful
 import colors from './config/colors/colors';
@@ -42,7 +47,6 @@ export const MenuProductsContext = React.createContext();
 function App() {
   const [userToken, setUserToken] = useState('null');
   const [isLoading, setIsLoading] = useState(true);
-  const [menuDataInCart, setMenuDataInCart] = useState([]);
 
   // momentan lasam astea default
   const [userDataLogin, setUserDataLogin] = useState({
@@ -125,6 +129,39 @@ function App() {
           title: 'Details Categories',
         }}
       />
+
+      {/*---------------- ORDERS ----------------*/}
+      <HomeStack.Screen
+        name="OrdersScreen"
+        component={OrdersScreen}
+        options={{
+          title: 'Comenziile mele',
+          headerStyle: {
+            backgroundColor: colors.backgroundButtonActive,
+          },
+          headerTintColor: colors.white,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            textAlign: 'center',
+          },
+        }}
+      />
+      {/* --------- ORDER ITEMS ---------- */}
+      <HomeStack.Screen
+        name="OrderItemsScreen"
+        component={OrderItemsScreen}
+        options={{
+          title: 'Produsele mele',
+          headerStyle: {
+            backgroundColor: colors.backgroundButtonActive,
+          },
+          headerTintColor: colors.white,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            textAlign: 'center',
+          },
+        }}
+      />
     </HomeStack.Navigator>
   );
 
@@ -160,6 +197,36 @@ function App() {
           },
         }}
       />
+      <ProfileStack.Screen
+        name="CheckoutPaymentScreen"
+        component={CheckoutPayment}
+        options={{
+          title: 'Confirmare plata',
+          headerStyle: {
+            backgroundColor: colors.backgroundButtonActive,
+          },
+          headerTintColor: colors.white,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            textAlign: 'center',
+          },
+        }}
+      />
+      <ProfileStack.Screen
+        name="CouponsListScreen"
+        component={CouponsList}
+        options={{
+          title: 'Lista de cupoane',
+          headerStyle: {
+            backgroundColor: colors.backgroundButtonActive,
+          },
+          headerTintColor: colors.white,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            textAlign: 'center',
+          },
+        }}
+      />
     </ProfileStack.Navigator>
   );
 
@@ -185,6 +252,21 @@ function App() {
         component={CouponsList}
         options={{
           title: 'Lista de cupoane',
+          headerStyle: {
+            backgroundColor: colors.backgroundButtonActive,
+          },
+          headerTintColor: colors.white,
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            textAlign: 'center',
+          },
+        }}
+      />
+      <CartStack.Screen
+        name="PayDeskScreen"
+        component={PayDesk}
+        options={{
+          title: 'Datele pentru plata',
           headerStyle: {
             backgroundColor: colors.backgroundButtonActive,
           },
@@ -329,6 +411,20 @@ function App() {
         component={ConfirmCode}
         options={{
           title: 'ConfirmCode',
+        }}
+      />
+      <AuthStack.Screen
+        name="SendEmailScreen"
+        component={SendEmail}
+        options={{
+          title: 'SendEmailScreen',
+        }}
+      />
+      <AuthStack.Screen
+        name="ForgotPasswordScreen"
+        component={ForgotPassword}
+        options={{
+          title: 'ForgotPasswordScreen',
         }}
       />
     </AuthStack.Navigator>

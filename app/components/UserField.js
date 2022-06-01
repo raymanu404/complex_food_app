@@ -11,7 +11,9 @@ import {Icon} from 'react-native-elements';
 
 function UserField(props) {
   const [focus, setFocus] = useState(false);
-  const [value, setValue] = useState(props.value);
+  const [value, setValue] = useState(props.value || '');
+  const [showPasswordEye, setShowPasswordEye] = useState(false);
+  const [securePassword, setSecurePassowrd] = useState(props.passwordType);
 
   const changeTextHandler = val => {
     if (val.length !== 0) {
@@ -54,7 +56,7 @@ function UserField(props) {
       paddingLeft: 10,
       color: colors.white,
       fontSize: 15,
-      width: props.widthStyle,
+      width: props.widthStyle * 0.78,
       height: 48,
     },
     textInputFocusOn: {
@@ -63,7 +65,7 @@ function UserField(props) {
       paddingLeft: 10,
       color: colors.white,
       fontSize: 17,
-      width: props.widthStyle,
+      width: props.widthStyle * 0.78,
       height: 48,
     },
   });
@@ -101,25 +103,56 @@ function UserField(props) {
           {!props.settingsMode ? (
             <Text style={styles.buttonText}>{props.labelField} </Text>
           ) : (
-            <TextInput
-              onChangeText={val => changeTextHandler(val)}
-              keyboardType={props.phoneType ? 'phone-pad' : 'default'}
-              value={value}
-              style={[
-                !focus ? styles.textInput : styles.textInputFocusOn,
-                {fontWeight: '500'},
-              ]}
-              onFocus={() => setFocus(true)}
-              onBlur={() => {
-                setFocus(false);
-                props.changeTextInput(value);
-              }}
-              autoCapitalize="none"
-              placeholder={props.labelField}
-              placeholderTextColor={colors.blackGrey}
-              key={props.labelField}
-              secureTextEntry={props.passwordType}
-            />
+            <>
+              <TextInput
+                onChangeText={val => changeTextHandler(val)}
+                keyboardType={props.phoneType ? 'phone-pad' : 'default'}
+                value={value}
+                style={[
+                  !focus ? styles.textInput : styles.textInputFocusOn,
+                  {fontWeight: '500'},
+                ]}
+                onFocus={() => {
+                  setFocus(true);
+                  if (props.OnBlurMethod) {
+                    props.OnBlurMethod(false);
+                  }
+                }}
+                onBlur={() => {
+                  setFocus(false);
+                  props.changeTextInput(value);
+                  if (props.OnBlurMethod) {
+                    props.OnBlurMethod(true);
+                  }
+                }}
+                ref={props.ref}
+                returnKeyType={props.returnKeyTypeBoolean ? 'next' : 'default'}
+                autoCapitalize="none"
+                placeholder={props.labelField}
+                placeholderTextColor={colors.blackGrey}
+                key={props.labelField}
+                secureTextEntry={securePassword}
+              />
+              <>
+                {props.showEyeForPassword ? (
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (showPasswordEye) {
+                      }
+                      setSecurePassowrd(!securePassword);
+                      setShowPasswordEye(!showPasswordEye);
+                    }}
+                    activeOpacity={0.5}>
+                    <Icon
+                      name={showPasswordEye ? 'eye' : 'eye-off'}
+                      type={'feather'}
+                      color={colors.white}
+                      size={24}
+                    />
+                  </TouchableOpacity>
+                ) : null}
+              </>
+            </>
           )}
 
           <View style={{justifyContent: 'flex-end', flex: 1}}>

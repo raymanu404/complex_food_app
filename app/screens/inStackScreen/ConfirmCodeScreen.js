@@ -14,13 +14,13 @@ import {
 } from 'react-native';
 import colors from '../../../config/colors/colors';
 import api_axios from '../../../config/api/api_axios';
-import {UserContext} from '../../../App';
 import {Icon} from 'react-native-elements';
 
 const width = Dimensions.get('screen').width;
 
 function ConfirmCode({navigation, route}) {
-  const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  const idUser = route.params.idUser;
+  const forgotPassword = route.params.forgotPassword;
   const [codeLetters, setCodeLetters] = useState({
     l1: '',
     l2: '',
@@ -28,7 +28,6 @@ function ConfirmCode({navigation, route}) {
     l4: '',
     l5: '',
     l6: '',
-    idUser: route.params.idUser,
   });
 
   const [errorMessage, setErrorMessage] = useState('');
@@ -161,7 +160,7 @@ function ConfirmCode({navigation, route}) {
         };
 
         const response = await api_axios.patch(
-          `/buyers/confirm/${codeLetters.idUser}`,
+          `/buyers/confirm/${idUser}`,
           code,
           headers,
         );
@@ -177,7 +176,12 @@ function ConfirmCode({navigation, route}) {
             l6: '',
           });
           showToastWithGravity();
-          navigation.goBack();
+
+          if (forgotPassword) {
+            navigation.navigate('ForgotPasswordScreen', {idUser: idUser});
+          } else {
+            navigation.goBack();
+          }
         }
 
         setErrorMessage('');
@@ -207,7 +211,7 @@ function ConfirmCode({navigation, route}) {
           />
         </TouchableOpacity>
         <Text style={styles.textInfo}>
-          Introduceti codul primit din email pentru a va putea confirma contul !
+          Introduceti codul primit din email pentru a va putea confirma contul!
         </Text>
         <View style={styles.inputLettersContainer}>
           <TextInput

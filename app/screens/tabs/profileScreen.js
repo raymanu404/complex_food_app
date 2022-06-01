@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect, useCallback} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -34,11 +34,13 @@ import {
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = 300;
-const colorAvatar = randomColor();
+// const colorAvatar = randomColor();
+const colorAvatar = '#9BA3EB';
 
 function Profile({navigation}) {
   const {logout} = useContext(AuthContext);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  const buyerID = userDataLogin.id;
   var [dataFromAPI, setDataFromAPI] = useState({});
 
   useEffect(() => {
@@ -50,65 +52,26 @@ function Profile({navigation}) {
           'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
         };
         const response = await api_axios.get(
-          `/buyers/${userDataLogin.id || 2}`,
+          `/buyers/${buyerID || 2}`,
           headers,
         );
-
-        const responseCoupons = await api_axios.get(
-          `/coupons/${userDataLogin.id || 1}`,
-          headers,
-        );
-        const userDataFromApi = {
-          userData: response.data,
-          coupons: responseCoupons.data,
-        };
-        console.log(userDataFromApi);
-        //preluate si lista de cupoane
-        setDataFromAPI(userDataFromApi);
+        setDataFromAPI(response.data);
       } catch (error) {
         console.log(error);
       }
     };
 
     getUserDataFromApi();
+    return () => {
+      setDataFromAPI([]);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [userData, setUserData] = useState({
-    // eslint-disable-next-line no-bitwise
-    firstName: userDataLogin.firstName || 'Emanuel',
-    lastName: userDataLogin.lastName || 'Caprariu',
-    email: userDataLogin.email || 'test@email.com',
-    phone: userDataLogin.phonenumber || '072908231',
-    gender: userDataLogin.gender || 'M',
-    id: userDataLogin.id || 2,
-    balance: userDataLogin.balance || 0,
-    tickets: [
-      {
-        key: '15185152d',
-        type: 1,
-        number:
-          Array.from(userDataLogin.coupons || []).filter(x => x.type === 1)
-            .length || 0,
-      },
-      {
-        key: 'QRCODEDACAE',
-        type: 2,
-        number:
-          Array.from(userDataLogin.coupons || []).filter(x => x.type === 2)
-            .length || 0,
-      },
-      {
-        key: 'CODERANDOMDACAE',
-        type: 3,
-        number:
-          Array.from(userDataLogin.coupons || []).filter(x => x.type === 3)
-            .length || 0,
-      },
-    ],
-    password: userDataLogin.password || '',
-    re_password: '',
-    colorUser: colorAvatar,
+    password: String(''),
+    new_password: String(''),
+    re_password: String(''),
   });
 
   const [settingsMode, setSettingsMode] = useState({
@@ -120,12 +83,15 @@ function Profile({navigation}) {
   });
 
   const [dataSettings, setDataSettings] = useState({
-    firstName: userData.firstName,
-    lastName: userData.lastName,
-    email: userData.email,
-    phone: userData.phone,
+    firstName: dataFromAPI.firstName,
+    lastName: dataFromAPI.lastName,
+    email: dataFromAPI.email,
+    phone: dataFromAPI.phoneNumber,
   });
 
+  const [textError, setTextError] = useState({
+    passwordTextError: '',
+  });
   const settingsModeHandler = () => {
     // setSettingsMode({
     //   ...settingsMode,
@@ -167,20 +133,10 @@ function Profile({navigation}) {
   };
 
   const showHideTicketsHandler = () => {
-    var total = 0;
-    userData.tickets.forEach(x => {
-      if (x.number > 0) {
-        total += x.number;
-      }
+    navigation.navigate('CouponsListScreen', {
+      buyerID: buyerID,
+      userMode: true,
     });
-    if (total === 0) {
-      showToastWithGravity('Nu aveti cupoane disponibile!');
-    } else {
-      setSettingsMode({
-        ...userData,
-        showTickets: !settingsMode.showTickets,
-      });
-    }
   };
 
   const logoutHandler = () => {
@@ -199,6 +155,10 @@ function Profile({navigation}) {
   };
 
   const changePasswordHandler = () => {
+    if (settingsMode.showChangePassword) {
+      //update password
+    }
+
     if (settingsMode.showSettingsMode) {
       setSettingsMode({
         ...settingsMode,
@@ -214,28 +174,128 @@ function Profile({navigation}) {
     }
   };
 
-  const depunereHandler = () => {
-    navigation.navigate('PayDeskScreen');
+  const changeBalanceHandler = newBalance => {
+    let updateBalance = Number(dataFromAPI.balance + newBalance).toFixed(2);
+    setDataFromAPI({
+      ...dataFromAPI,
+      balance: updateBalance,
+    });
   };
 
-  const saveSettingsHandler = () => {
-    setUserData({
-      ...userData,
-      firstName: dataSettings.firstName,
-      lastName: dataSettings.lastName,
-      email: dataSettings.email,
-      phone: dataSettings.phone,
+  const depunereHandler = () => {
+    let userInfoObj = {
+      buyerId: buyerID,
+      email: dataFromAPI.email,
+      firstName: dataFromAPI.firstName,
+      lastName: dataFromAPI.lastName,
+      phoneNumber: dataFromAPI.phoneNumber,
+    };
+
+    navigation.navigate('PayDeskScreen', {
+      userInfo: userInfoObj,
+      onGoBack: changeBalanceHandler,
     });
-    setSettingsMode({
-      ...settingsMode,
-      showSaveButton: false,
-      showSettingsMode: false,
-      showChangePassword: false,
-    });
-    ToastAndroid.show(
-      'Datele au fost modificate cu success!',
-      ToastAndroid.CENTER,
-    );
+  };
+
+  const saveSettingsHandler = async () => {
+    try {
+      let headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+      };
+      if (settingsMode.showSettingsMode) {
+        const userDataUpdate = {
+          firstName: dataSettings.firstName,
+          lastName: dataSettings.lastName,
+          phoneNumber: dataSettings.phone,
+        };
+
+        const response = await api_axios.put(
+          `/buyers/update/${buyerID}`,
+          userDataUpdate,
+          headers,
+        );
+
+        console.log('status update : ', response.status);
+        if (response.status === 200) {
+          setDataFromAPI({
+            ...dataFromAPI,
+            firstName: dataSettings.firstName,
+            lastName: dataSettings.lastName,
+            phoneNumber: dataSettings.phone,
+          });
+
+          setSettingsMode({
+            ...settingsMode,
+            showSaveButton: false,
+            showSettingsMode: false,
+            showChangePassword: false,
+          });
+          ToastAndroid.show(
+            'Datele au fost modificate cu success!',
+            ToastAndroid.CENTER,
+          );
+        }
+      }
+      console.log(`${userData.re_password} + ${userData.new_password}`);
+      if (settingsMode.showChangePassword) {
+        if (String(userData.re_password) === String(userData.new_password)) {
+          console.log(userData.re_password + ' . ' + userData.new_password);
+          setTextError({
+            ...textError,
+            passwordTextError: '',
+          });
+          const changePassword = {
+            oldPassword: userData.password,
+            newPassword: userData.new_password,
+          };
+
+          const reponseChangePassword = await api_axios.patch(
+            `/buyers/update-password/${buyerID}`,
+            changePassword,
+            headers,
+          );
+          if (reponseChangePassword.status === 200) {
+            if (
+              reponseChangePassword.data ===
+              'Password was updated successfully!'
+            ) {
+              setTextError({
+                ...textError,
+                passwordTextError: '',
+              });
+              setSettingsMode({
+                ...settingsMode,
+                showSaveButton: false,
+                showSettingsMode: false,
+                showChangePassword: false,
+              });
+            } else {
+              setTextError({
+                ...textError,
+                passwordTextError: 'Parola incorecta!',
+              });
+            }
+          }
+        }
+      } else {
+        setTextError({
+          ...textError,
+          passwordTextError: 'Parolele nu sunt identice',
+        });
+      }
+    } catch (error) {
+      console.log(error.response.status);
+      setTextError({
+        ...textError,
+        passwordTextError: 'Datele nu au putut fi actualizate!',
+      });
+      ToastAndroid.show(
+        'Datele nu au putut fi actualizate!',
+        ToastAndroid.CENTER,
+      );
+    }
   };
 
   const changeFirstNameValue = childdata => {
@@ -251,24 +311,75 @@ function Profile({navigation}) {
     setDataSettings({...dataSettings, phone: childdata});
   };
 
-  const renderTicket = ({item, index}) => (
-    <UserField
-      nameIcon={
-        item.typeTicket === '10'
-          ? 'numeric-1-box-outline'
-          : item.typeTicket === '20'
-          ? 'numeric-2-box-outline'
-          : 'numeric-3-box-outline'
-      }
-      nameIcon2={'numeric-0-box-outline'}
-      typeIcon={'material-community'}
-      labelField={'Cupon ' + item.typeTicket + '% reducere'}
-      sizeIcon={26}
-      dataField={'Total:' + item.number}
-      buttonStyle={styles.buttonStyle}
-      typeOfTicket={item.typeTicket}
-    />
-  );
+  const oldPasswordOnBlurMethod = flag => {
+    if (flag) {
+    }
+  };
+  const newPasswordOnBlurMethod = flag => {
+    if (flag) {
+    }
+  };
+  const renewPasswordOnBlurMethod = flag => {};
+
+  const textInputOldPasswordHandler = childdata => {
+    if (String(childdata) !== '') {
+      setUserData({
+        ...userData,
+        password: childdata,
+      });
+      setTextError({
+        ...textError,
+        passwordTextError: '',
+      });
+    } else {
+      setUserData({
+        ...userData,
+        password: childdata,
+      });
+    }
+  };
+  const textInputNewPasswordHandler = childdata => {
+    if (String(childdata) !== '') {
+      setUserData({
+        ...userData,
+        new_password: childdata,
+      });
+      setTextError({
+        ...textError,
+        passwordTextError: '',
+      });
+    } else {
+      // setTextError({
+      //   ...textError,
+      //   passwordTextError: '',
+      // });
+      setUserData({
+        ...userData,
+        new_password: childdata,
+      });
+    }
+  };
+  const textInputR_NewPasswordHandler = childdata => {
+    if (String(childdata) !== '') {
+      setUserData({
+        ...userData,
+        re_password: childdata,
+      });
+      setTextError({
+        ...textError,
+        passwordTextError: '',
+      });
+    } else {
+      // setTextError({
+      //   ...textError,
+      //   passwordTextError: 'Parolele nu sunt identice!',
+      // });
+      setUserData({
+        ...userData,
+        re_password: childdata,
+      });
+    }
+  };
 
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -278,12 +389,16 @@ function Profile({navigation}) {
             size={120}
             rounded
             title={
-              userData.firstName.charAt(0) + '' + userData.lastName.charAt(0)
+              String(dataFromAPI.firstName).charAt(0) +
+              '' +
+              String(dataFromAPI.lastName).charAt(0)
             }
-            containerStyle={{backgroundColor: userData.colorUser}}
+            containerStyle={{backgroundColor: colorAvatar}}
           />
         </View>
+        {/* ----------------------------HEADER -------------------------- */}
         <View style={styles.header}>
+          {/* ----------------------------EDIT PROFILE ICON-------------------------- */}
           <View style={styles.editProfile}>
             <TouchableOpacity
               onPress={() => settingsModeHandler()}
@@ -298,6 +413,7 @@ function Profile({navigation}) {
               />
             </TouchableOpacity>
           </View>
+          {/* ------------------------------HEADER RIGHT ------------------------ */}
           <View style={styles.headerRight}>
             <View
               style={{
@@ -307,7 +423,7 @@ function Profile({navigation}) {
               <Text style={styles.text_balance}>
                 SOLD:{' '}
                 {settingsMode.showBalance
-                  ? `${Number(userData.balance).toFixed(2)}`
+                  ? `${Number(dataFromAPI.balance).toFixed(2)}`
                   : '****'}{' '}
                 RON
               </Text>
@@ -322,6 +438,7 @@ function Profile({navigation}) {
                 />
               </TouchableOpacity>
             </View>
+
             <View style={styles.logoutButton}>
               <TouchableOpacity
                 onPress={() => logoutHandler()}
@@ -338,6 +455,7 @@ function Profile({navigation}) {
             </View>
           </View>
 
+          {/* ----------- USER PROFILE --------------------- */}
           <ScrollView style={styles.userProfile}>
             <View style={styles.userDataInfo}>
               <Text style={styles.textLabel}>Date personale</Text>
@@ -349,7 +467,9 @@ function Profile({navigation}) {
                     nameIcon={'user'}
                     typeIcon={'antdesign'}
                     labelField={'Nume'}
-                    dataField={userData.firstName + ' ' + userData.lastName}
+                    dataField={
+                      dataFromAPI.firstName + ' ' + dataFromAPI.lastName
+                    }
                   />
                   <UserField
                     widthStyle={width - 30}
@@ -357,7 +477,7 @@ function Profile({navigation}) {
                     nameIcon={'mail'}
                     typeIcon={'antdesign'}
                     labelField={'Email'}
-                    dataField={userData.email}
+                    dataField={dataFromAPI.email}
                   />
                   <UserField
                     widthStyle={width - 30}
@@ -365,7 +485,7 @@ function Profile({navigation}) {
                     nameIcon={'phone'}
                     typeIcon={'antdesign'}
                     labelField={'Telefon'}
-                    dataField={userData.phone}
+                    dataField={dataFromAPI.phoneNumber}
                   />
                 </>
               ) : (
@@ -376,8 +496,7 @@ function Profile({navigation}) {
                     nameIcon={'user'}
                     typeIcon={'antdesign'}
                     labelField={'Prenume'}
-                    dataField={userData.firstName}
-                    value={userData.firstName}
+                    dataField={' '}
                     settingsMode={true}
                     changeTextInput={changeFirstNameValue}
                   />
@@ -387,30 +506,27 @@ function Profile({navigation}) {
                     nameIcon={'user'}
                     typeIcon={'feather'}
                     labelField={'Nume'}
-                    dataField={userData.lastName}
-                    value={userData.lastName}
+                    dataField={' '}
                     settingsMode={true}
                     changeTextInput={changeLastNameValue}
                   />
-                  <UserField
+                  {/* <UserField
                     widthStyle={width - 30}
                     colorBackground={colors.black20}
                     nameIcon={'mail'}
                     typeIcon={'antdesign'}
                     labelField={'Email'}
-                    dataField={userData.email}
-                    value={userData.email}
+                    dataField={dataFromAPI.email}
                     settingsMode={true}
                     changeTextInput={changeEmailValue}
-                  />
+                  /> */}
                   <UserField
                     widthStyle={width - 30}
                     colorBackground={colors.black20}
                     nameIcon={'phone'}
                     typeIcon={'antdesign'}
                     labelField={'Telefon'}
-                    dataField={userData.phone}
-                    value={userData.phone}
+                    dataField={' '}
                     settingsMode={true}
                     phoneType={true}
                     changeTextInput={changePhoneValue}
@@ -418,9 +534,10 @@ function Profile({navigation}) {
                 </>
               )}
             </View>
+
+            {/* ------------------------- SETTINGS ACCOUNT --------------------------- */}
             <View style={styles.userDataInfo}>
               <Text style={styles.textLabel}>Setari Cont</Text>
-
               <TouchableOpacity
                 onPress={() => changePasswordHandler()}
                 activeOpacity={0.8}>
@@ -432,6 +549,7 @@ function Profile({navigation}) {
                   labelField={'Schimbare Parola'}
                 />
               </TouchableOpacity>
+
               {settingsMode.showChangePassword ? (
                 <>
                   <UserField
@@ -440,11 +558,14 @@ function Profile({navigation}) {
                     nameIcon={'lock-closed-outline'}
                     typeIcon={'ionicon'}
                     labelField={'Parola veche'}
-                    dataField={'parola veche'}
-                    value={userData.password}
+                    dataField={' '}
+                    value={''}
                     settingsMode={true}
-                    changeTextInput={changePhoneValue}
+                    changeTextInput={textInputOldPasswordHandler}
+                    OnBlurMethod={oldPasswordOnBlurMethod}
                     passwordType={true}
+                    returnKeyTypeBoolean={true}
+                    showEyeForPassword={true}
                   />
                   <UserField
                     widthStyle={width - 30}
@@ -452,11 +573,14 @@ function Profile({navigation}) {
                     nameIcon={'lock-open-outline'}
                     typeIcon={'ionicon'}
                     labelField={'Parola noua'}
-                    dataField={'parola noua'}
-                    value={userData.password}
+                    dataField={' '}
+                    value={''}
                     settingsMode={true}
-                    changeTextInput={changePhoneValue}
+                    changeTextInput={textInputNewPasswordHandler}
+                    OnBlurMethod={newPasswordOnBlurMethod}
                     passwordType={true}
+                    returnKeyTypeBoolean={true}
+                    showEyeForPassword={true}
                   />
                   <UserField
                     widthStyle={width - 30}
@@ -464,14 +588,22 @@ function Profile({navigation}) {
                     nameIcon={'lock-open-outline'}
                     typeIcon={'ionicon'}
                     labelField={'Confirmare parola'}
-                    dataField={'confirmare parola'}
-                    value={userData.re_password}
+                    dataField={' '}
+                    value={''}
                     settingsMode={true}
-                    changeTextInput={changePhoneValue}
+                    changeTextInput={textInputR_NewPasswordHandler}
+                    OnBlurMethod={renewPasswordOnBlurMethod}
                     passwordType={true}
+                    returnKeyTypeBoolean={false}
+                    showEyeForPassword={true}
                   />
+
+                  <Text style={styles.textError}>
+                    {textError.passwordTextError}
+                  </Text>
                 </>
               ) : null}
+
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => depunereHandler()}>
@@ -483,86 +615,19 @@ function Profile({navigation}) {
                   labelField={'Depunere'}
                 />
               </TouchableOpacity>
-              <Collapse onToggle={() => showHideTicketsHandler()}>
-                <CollapseHeader>
-                  {/* <TouchableOpacity
+
+              <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => showHideTicketsHandler()}> */}
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.blackGrey}
-                    nameIcon={'ticket-outline'}
-                    arrowName={
-                      !settingsMode.showTickets ? 'arrowup' : 'arrowdown'
-                    }
-                    typeIcon={'material-community'}
-                    labelField={'Cupoanele mele'}
-                    sizeIcon={26}
-                    updown={true}
-                  />
-                  {/* </TouchableOpacity> */}
-                </CollapseHeader>
-                <CollapseBody key={Math.random()}>
-                  {settingsMode.showTickets
-                    ? userData.tickets.map((item, index) => {
-                        switch (item.type) {
-                          case 1:
-                            return (
-                              <UserField
-                                nameIcon={'numeric-1-box-outline'}
-                                nameIcon2={'numeric-0-box-outline'}
-                                typeIcon={'material-community'}
-                                labelField={
-                                  'Cupon ' + item.type + '0 % reducere'
-                                }
-                                sizeIcon={26}
-                                dataField={'Total:' + item.number}
-                                buttonStyle={styles.buttonStyle}
-                                typeOfTicket={item.type}
-                              />
-                            );
-                          case 2:
-                            return (
-                              <UserField
-                                nameIcon={'numeric-2-box-outline'}
-                                nameIcon2={'numeric-0-box-outline'}
-                                typeIcon={'material-community'}
-                                labelField={
-                                  'Cupon ' + item.type + '0 % reducere'
-                                }
-                                sizeIcon={26}
-                                dataField={'Total:' + item.number}
-                                buttonStyle={styles.buttonStyle}
-                                typeOfTicket={item.type}
-                              />
-                            );
-                          case 3:
-                            return (
-                              <UserField
-                                nameIcon={'numeric-3-box-outline'}
-                                nameIcon2={'numeric-0-box-outline'}
-                                typeIcon={'material-community'}
-                                labelField={
-                                  'Cupon ' + item.type + '0 % reducere'
-                                }
-                                sizeIcon={26}
-                                dataField={'Total:' + item.number}
-                                buttonStyle={styles.buttonStyle}
-                                typeOfTicket={item.type}
-                              />
-                            );
-                        }
-                      })
-                    : null}
-                  {/* {userData.showTickets ? (
-                    <FlatList
-                      renderItem={renderTicket}
-                      data={userData.tickets}
-                      keyExtractor={item => item.key}
-                    />
-                  ) : null} */}
-                </CollapseBody>
-              </Collapse>
+                onPress={() => showHideTicketsHandler()}>
+                <UserField
+                  widthStyle={width - 30}
+                  colorBackground={colors.blackGrey}
+                  nameIcon={'ticket-outline'}
+                  typeIcon={'material-community'}
+                  labelField={'Cupoanele mele'}
+                  sizeIcon={26}
+                />
+              </TouchableOpacity>
             </View>
 
             {settingsMode.showSaveButton ? (
@@ -589,6 +654,7 @@ function Profile({navigation}) {
     </TouchableWithoutFeedback>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -669,5 +735,12 @@ const styles = StyleSheet.create({
     top: 20,
     zIndex: 15,
   },
+  textError: {
+    color: colors.textError,
+    fontSize: 14,
+    textAlign: 'left',
+    fontWeight: '400',
+  },
 });
+
 export default Profile;

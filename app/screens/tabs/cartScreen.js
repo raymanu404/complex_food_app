@@ -10,12 +10,12 @@ import {
   FlatList,
   TouchableHighlight,
   ToastAndroid,
+  Alert,
 } from 'react-native';
-import {Icon} from 'react-native-elements';
 import GestureFlipView from 'react-native-gesture-flip-card';
 import colors from '../../../config/colors/colors';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
-// import {MenuProductsContext} from '../../../config/context';
+import {Icon} from 'react-native-elements';
 import {UserContext} from '../../../App';
 import RenderEmptyList from '../../components/RenderEmptyList';
 import ConfirmedOrder from '../../components/ConfirmedOrder';
@@ -41,7 +41,6 @@ function Cart({navigation}) {
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerID = userDataLogin.id || 1;
   const cartID = userDataLogin.cartId;
-  console.log('CARTID : ', cartID);
   const [couponCode, setCouponCode] = useState('default');
   const [totalPrice, setTotalPrice] = useState(0);
   const [confirmCart, setConfirmCart] = useState({
@@ -58,19 +57,22 @@ function Cart({navigation}) {
           'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
         };
         const response = await api_axios.get(
-          `/shoppingItems/${cartID}`,
+          `/shoppingItems/get_items/${buyerID}`,
           headers,
         );
-        //ar trebui dupa buyerId sa selectam cartul
-        //de facut un select cu toate produsele si pretul lor daca nu merge partea de useContext
-        console.log(response.data);
+        const itemsFromApi = response.data;
         if (response.status === 200) {
+          let sum = 0.0;
+          itemsFromApi.map(element => {
+            sum += element.price * element.cantity;
+          });
+
           setMenuDataInCart(response.data);
           setConfirmCart({
             ...confirmCart,
             confirmed: false,
           });
-          computeTotalOfPrice();
+          setTotalPrice(sum.toFixed(2));
         }
       } catch (error) {
         console.log(error.response.status);
@@ -82,45 +84,79 @@ function Cart({navigation}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  //Calculate total of price HERE
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const computeTotalOfPrice = () => {
-    let sum = 0.0;
-    menuDataInCart.map(element => {
-      sum += element.price * element.cantity;
-    });
-    setTotalPrice(sum.toFixed(2));
+  const removeFromQuantity = props => {
+    console.log(props.quantity);
+    if (props.quantity > 0) {
+      const newDataMenu = Object.assign({}, menuDataInCart);
+      newDataMenu[props.myKey].quantity = props.quantity - 1;
+      setMenuDataInCart(newDataMenu);
+      let newTotalPrice =
+        totalPrice -
+        Number(newDataMenu[props.myKey].quantity) *
+          Number(newDataMenu[props.myKey].price);
+      setTotalPrice(newTotalPrice);
+    }
   };
 
-  /*
-  obj.arr = obj.arr.filter((value, index, self) =>
-  index === self.findIndex((t) => (
-    t.place === value.place && t.name === value.name
-  ))
-)
-  */
-  const concateSameItems = props => {
-    const uniqueElements = new Set(menuDataInCart);
-    const filteredElements = menuDataInCart.filter(item => {
-      if (uniqueElements.has(item)) {
-        uniqueElements.delete(item);
-      } else {
-        return item;
+  const addToQuantity = props => {
+    const newDataMenu = Object.assign({}, menuDataInCart);
+    for (var i in newDataMenu) {
+      if (newDataMenu[i].id === props.myKey) {
+        console.log(newDataMenu[i]);
+        console.log(props);
+        newDataMenu[i].cantity = props.quantity + 1;
+
+        // let newTotalPrice =
+        //   totalPrice -
+        //   Number(newDataMenu[i].quantity) * Number(newDataMenu[i].price);
+        // setTotalPrice(newTotalPrice);
       }
-    });
+    }
   };
 
   //Remove item from cart
-  const removeItemFromCart = props => {
-    setMenuDataInCart(myNewMenu =>
-      myNewMenu.filter(el => el.id !== props.myKey),
-    );
+  const removeItemFromCart = async props => {
+    console.log(props);
+
+    try {
+      let headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+      };
+      let itemToDelete = {
+        productId: props.myKey,
+        cantity: 0,
+      };
+      const reponseDeleteItem = await api_axios.post(
+        `/shoppingItems/create/${buyerID}`,
+        itemToDelete,
+        headers,
+      );
+      if (
+        reponseDeleteItem.status === 200 &&
+        reponseDeleteItem.data === 'Item was deleted successesfully!'
+      ) {
+        setMenuDataInCart(myNewMenu =>
+          myNewMenu.filter(el => el.id !== props.myKey),
+        );
+        let newTotalPrice =
+          totalPrice - Number(props.price) * Number(props.quantity);
+        setTotalPrice(newTotalPrice);
+      }
+    } catch (error) {
+      console.log(error.response.status);
+    }
   };
 
   const renderFront = props => {
     return (
       <View style={[styles.image_container, {backgroundColor: colors.white}]}>
-        <Image source={props.src} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{uri: props.src}}
+          style={styles.image}
+          resizeMode="cover"
+        />
         <Text
           style={[styles.title_menu, {color: colors.backgroundButtonActive}]}>
           {props.title}
@@ -131,6 +167,42 @@ function Cart({navigation}) {
             justifyContent: 'space-evenly',
             marginTop: -10,
           }}>
+          {/* <View style={styles.buttonsAddRemoveQuantity}>
+            <TouchableOpacity activeOpacity={0.8}>
+              <View style={styles.buttonAddRemove}>
+                <Icon
+                  onPress={() => removeFromQuantity(props)}
+                  name="remove-circle-outline"
+                  type="ionicon"
+                  size={40}
+                  color={colors.backgroundButtonActive}
+                />
+              </View>
+            </TouchableOpacity>
+            <View style={styles.quantityLabel}>
+              <Text
+                style={[
+                  styles.title_menu,
+                  {
+                    color: colors.backgroundButtonActive,
+                    fontSize: 28,
+                  },
+                ]}>
+                {props.quantity}{' '}
+              </Text>
+            </View>
+            <TouchableOpacity activeOpacity={0.8}>
+              <View style={styles.buttonAddRemove}>
+                <Icon
+                  onPress={() => addToQuantity(props)}
+                  name="add-circle-outline"
+                  type="ionicon"
+                  size={40}
+                  color={colors.backgroundButtonActive}
+                />
+              </View>
+            </TouchableOpacity>
+          </View> */}
           <Text
             style={[styles.price_menu, {color: colors.backgroundButtonActive}]}>
             Cantitate: {props.quantity}
@@ -164,7 +236,7 @@ function Cart({navigation}) {
         </Text>
         <Text
           style={[styles.details_text, {fontWeight: '700', marginBottom: -10}]}>
-          Ingrediente
+          Detalii Produs
         </Text>
         <ScrollView style={{flex: 1}}>
           <Text style={styles.details_text}>{props.details} </Text>
@@ -196,11 +268,17 @@ function Cart({navigation}) {
     setCouponCode(code);
   };
   const applyUserCouponHandler = () => {
-    console.log(buyerID);
-    navigation.navigate('CouponsListScreen', {
-      buyerID: buyerID,
-      onGoBack: setCodeCouponHandler,
-    });
+    if (totalPrice >= 12) {
+      navigation.navigate('CouponsListScreen', {
+        buyerID: buyerID,
+        onGoBack: setCodeCouponHandler,
+      });
+    } else {
+      Alert.alert(
+        'Comanda minima',
+        'Comanda minima pentru aplicarea cupoanelor este de 12 RON!',
+      );
+    }
   };
   const showToastWithGravity = message => {
     ToastAndroid.showWithGravity(
@@ -234,35 +312,52 @@ function Cart({navigation}) {
     }
   };
 
+  const checkoutBalanceRedirectOnPaymentScreen = balance => {
+    if (balance >= totalPrice) {
+      return true;
+    } else {
+      let userInfoObj = {
+        buyerId: buyerID,
+        email: userDataLogin.email,
+        firstName: userDataLogin.firstName,
+        lastName: userDataLogin.lastName,
+        phoneNumber: userDataLogin.phoneNumber,
+      };
+      navigation.navigate('PayDeskScreen', {
+        userInfo: userInfoObj,
+      });
+    }
+  };
+
   const confirmCommandHandler = async () => {
-    console.log('confirm');
     try {
       let headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
       };
+      if (checkoutBalanceRedirectOnPaymentScreen(userDataLogin.balance)) {
+        let couponCodeFromBuyer = {
+          couponCart: couponCode,
+        };
 
-      let couponCodeFromBuyer = {
-        couponCart: couponCode,
-      };
-
-      const response = await api_axios.patch(
-        `/carts/confirm/${buyerID}`,
-        couponCodeFromBuyer,
-        headers,
-      );
-      console.log(response.data);
-      const orderCodeFromResponse = response.data;
-      if (String(orderCodeFromResponse).startsWith('OrderCode')) {
-        const orderCode = String(orderCodeFromResponse).split(':')[1];
-        showToastWithGravity('Comanda a fost plasata!');
-        setMenuDataInCart([]);
-        setConfirmCart({
-          ...confirmCart,
-          confirmed: true,
-          orderCode: orderCode,
-        });
+        const response = await api_axios.patch(
+          `/carts/confirm/${buyerID}`,
+          couponCodeFromBuyer,
+          headers,
+        );
+        console.log(response.data);
+        const orderCodeFromResponse = response.data;
+        if (String(orderCodeFromResponse).startsWith('OrderCode')) {
+          const orderCode = String(orderCodeFromResponse).split(':')[1];
+          showToastWithGravity('Comanda a fost plasata!');
+          setMenuDataInCart([]);
+          setConfirmCart({
+            ...confirmCart,
+            confirmed: true,
+            orderCode: orderCode,
+          });
+        }
         // navigation.goBack();
       }
     } catch (error) {
@@ -271,12 +366,7 @@ function Cart({navigation}) {
   };
   return (
     <View style={styles.container}>
-      {confirmCart.confirmed ? (
-        <ConfirmedOrder
-          title_message="Multumim pentru comanda!"
-          orderCode={confirmCart.orderCode}
-        />
-      ) : menuDataInCart.length !== 0 ? (
+      {menuDataInCart.length !== 0 ? (
         <View style={styles.menu_container}>
           <FlatList
             renderItem={renderMenuItem}
@@ -285,20 +375,27 @@ function Cart({navigation}) {
           />
           <View style={styles.payment_container}>
             <View style={styles.payment_view}>
-              <TouchableOpacity activeOpacity={0.8}>
-                <View style={styles.button}>
-                  <Text
-                    style={styles.buttonText}
-                    onPress={applyUserCouponHandler}>
-                    Aplica Cupon
-                  </Text>
-                </View>
-              </TouchableOpacity>
+              <View style={styles.couponContainer}>
+                <TouchableOpacity activeOpacity={0.8}>
+                  <View style={styles.button}>
+                    <Text
+                      style={styles.buttonText}
+                      onPress={applyUserCouponHandler}>
+                      Aplica Cupon
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+                <Text style={styles.textCouponCode}>
+                  {couponCode === 'default'
+                    ? ''
+                    : String(`Cod cupon: ${couponCode}`)}
+                </Text>
+              </View>
 
               <View
                 style={[
                   styles.button,
-                  {backgroundColor: colors.white, width: 160},
+                  {backgroundColor: colors.white, width: 160, marginBottom: 30},
                 ]}>
                 <Text
                   style={[
@@ -309,12 +406,13 @@ function Cart({navigation}) {
                 </Text>
               </View>
             </View>
+
             <View style={styles.deleteCartIcon}>
               <Text style={styles.textDeleteCart}>Golire cos</Text>
               <Icon
                 onPress={() => deleteCartHandler()}
-                name={'trash-bin-outline'}
-                type={'ionicon'}
+                name={'cart-remove'}
+                type={'material-community'}
                 size={32}
                 color={colors.recycleBin}
               />
@@ -330,6 +428,11 @@ function Cart({navigation}) {
             </TouchableOpacity>
           </View>
         </View>
+      ) : confirmCart.confirmed ? (
+        <ConfirmedOrder
+          title_message="Multumim pentru comanda!"
+          orderCode={confirmCart.orderCode}
+        />
       ) : (
         <RenderEmptyList title_message={'Cosul este gol!'} />
       )}
@@ -432,8 +535,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   payment_container: {
-    // flex: 1,
-    marginTop: 10,
+    paddingTop: 2,
     alignItems: 'center',
   },
   payment_view: {
@@ -456,6 +558,46 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: colors.recycleBin,
     letterSpacing: 1,
+  },
+  couponContainer: {
+    // marginTop: 20,
+    flexDirection: 'column',
+  },
+  textCouponCode: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: colors.backgroundButtonActive,
+    fontWeight: '500',
+    paddingLeft: 5,
+  },
+  buttonsAddRemoveQuantity: {
+    marginTop: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  quantityLabel: {
+    // width: 60,
+    // height: 50,
+    // borderColor: colors.backgroundButtonActive,
+    // justifyContent: 'flex-start',
+    // alignItems: 'center',
+  },
+  buttonAddRemove: {
+    marginBottom: 10,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    width: 50,
+    height: 50,
+    borderRadius: 100,
+    backgroundColor: colors.white,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
   },
 });
 

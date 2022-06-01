@@ -28,6 +28,7 @@ const MAX_PASSWORD_LENGTH = 40;
 
 function Register({navigation}) {
   const {register} = useContext(AuthContext);
+
   const goBackLogin = () => {
     navigation.goBack();
   };
@@ -371,11 +372,11 @@ function Register({navigation}) {
           emptyFiledsError: '',
         });
 
-        api_axios
+        await api_axios
           .post('/buyers/register', userDataForRegister)
           .then(response => {
             console.log(response.statusText);
-            if (response.data['email'] === userInfo.email) {
+            if (response.data.email === userInfo.email) {
               register();
               showToastWithGravity();
               goToLoginScreen();

@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, useContext, useEffect} from 'react';
 import {
   View,
   StyleSheet,
@@ -28,10 +28,41 @@ const menu_container_width = width - 50;
 
 function Tickets({navigation}) {
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
+  const buyerID = userDataLogin.id;
+
   const [userInfo, setUserInfo] = useState({
-    idUser: userDataLogin.id || 1,
-    soldUser: userDataLogin.balance || 0,
+    balance: 0,
   });
+
+  useEffect(() => {
+    const getUserDataFromApi = async () => {
+      try {
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+        const response = await api_axios.get(
+          `/buyers/${buyerID || 2}`,
+          headers,
+        );
+
+        if (response.status === 200) {
+          setUserInfo({
+            ...userInfo,
+            balance: response.data.balance,
+          });
+          console.log(response.data.balance);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getUserDataFromApi();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showToastWithGravity = message => {
     ToastAndroid.showWithGravity(
@@ -49,12 +80,12 @@ function Tickets({navigation}) {
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
       };
       const data = {
-        cantity: amount,
         type: type,
       };
+
       const total_price =
         type === 1 ? 10 : type === 2 ? 30 : type === 3 ? 50 : 0;
-      if (userInfo.soldUser >= total_price) {
+      if (userInfo.balance >= total_price) {
         Alert.alert(
           'Acceptare tranzactie',
           `Doriti sa faceti plata pentru ${amount} cupoane in valoare de ${
@@ -69,7 +100,7 @@ function Tickets({navigation}) {
               text: 'DA',
               onPress: async () => {
                 const response = await api_axios.post(
-                  `/coupons/buy_coupons/${userInfo.idUser}`,
+                  `/coupons/buy_coupons/${buyerID}`,
                   data,
                   headers,
                 );
@@ -84,13 +115,13 @@ function Tickets({navigation}) {
                     );
                     setUserInfo({
                       ...userInfo,
-                      soldUser: String(response.data),
-                    });
-                    setUserDataLogin({
-                      ...userDataLogin,
                       balance: String(response.data),
                     });
-                    navigation.navigate('HomeScreen');
+                    // setUserDataLogin({
+                    //   ...userDataLogin,
+                    //   balance: String(response.data),
+                    // });
+                    // navigation.navigate('HomeScreen');
                   }
                 } else {
                   showToastWithGravity('Fonduri insuficiente!!!');
@@ -115,7 +146,7 @@ function Tickets({navigation}) {
       <View style={styles.container}>
         <View style={styles.balance_container}>
           <Text style={styles.text_balance}>
-            Sold disponibil : {userInfo.soldUser} RON
+            Sold disponibil : {Number(userInfo.balance).toFixed(2)} RON
           </Text>
         </View>
         <ScrollView style={{marginBottom: 20}}>

@@ -1,39 +1,32 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, StyleSheet, FlatList, Dimensions} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Dimensions,
+  TouchableOpacity,
+} from 'react-native';
 import api_axios from '../../../config/api/api_axios';
+import colors from '../../../config/colors/colors';
 import Coupon from '../../components/Coupon';
 import RenderEmptyList from '../../components/RenderEmptyList';
+import {Icon} from 'react-native-elements';
 
 const height = Dimensions.get('screen').height;
+const width = Dimensions.get('screen').width;
 
 function CouponsList({navigation, route}) {
   const buyerID = route.params.buyerID || 2;
-  const [coupons, setCoupons] = useState([
-    {
-      id: 1,
-      category: 1,
-      dateCreated: '07/04/2022 19:23',
-      code: 'aoshfa',
-    },
-    {
-      id: 2,
-      category: 2,
-      dateCreated: '07/04/2022 19:23',
-      code: 'afasfas2',
-    },
-    {
-      id: 3,
-      category: 2,
-      dateCreated: '07/04/2022 19:23',
-      code: 'asfa',
-    },
-    {
-      id: 4,
-      category: 3,
-      dateCreated: '07/04/2022 19:23',
-      code: 'agag',
-    },
-  ]);
+  const userMode = route.params.userMode || false;
+  const [coupons, setCoupons] = useState([]);
+  const [filterType, setFilterType] = useState({
+    filter: 0,
+    coupons1: [],
+    coupons2: [],
+    coupons3: [],
+    numberCoupons: 0,
+  });
 
   useEffect(() => {
     const getCoupons = async () => {
@@ -49,7 +42,13 @@ function CouponsList({navigation, route}) {
           const couponsFromAPI = response.data.sort(function (a, b) {
             return a.type - b.type;
           });
+
           setCoupons(couponsFromAPI);
+          setFilterType({
+            ...filterType,
+            filter: 0,
+            numberCoupons: Array.from(couponsFromAPI).length,
+          });
         }
       } catch (error) {
         console.log(error.response.status);
@@ -73,22 +72,151 @@ function CouponsList({navigation, route}) {
       console.log(error);
     }
   };
+
   const renderCouponItem = ({item, index}) => (
     <Coupon
       type={item.type}
       dateCreated={item.dateCreated}
       code={item.code}
       applyCoupon={() => applyCouponForBuyer(item.code)}
+      userMode={userMode}
     />
   );
+
+  // -------------------- FILTERS HANDLER ----------------
+  const sortCouponsByType = () => {
+    const couponsFromAPI = coupons.sort(function (a, b) {
+      return a.type - b.type;
+    });
+
+    setFilterType({
+      ...filterType,
+      filter: 0,
+      numberCoupons: Array.from(couponsFromAPI).length,
+    });
+    setCoupons(couponsFromAPI);
+  };
+  const showOnlyTypeOneCoupons = () => {
+    var filtered = coupons.filter(function (value, index) {
+      return Number(value.type) !== 2 && Number(value.type) !== 3;
+    });
+
+    setFilterType({
+      ...filterType,
+      filter: 1,
+      coupons1: filtered,
+      numberCoupons: Array.from(filtered).length,
+    });
+  };
+  const showOnlyTypeTwoCoupons = () => {
+    var filtered = coupons.filter(function (value, index) {
+      return Number(value.type) !== 1 && Number(value.type) !== 3;
+    });
+
+    setFilterType({
+      ...filterType,
+      filter: 2,
+      coupons2: filtered,
+      numberCoupons: Array.from(filtered).length,
+    });
+  };
+  const showOnlyTypeThreeCoupons = () => {
+    var filtered = coupons.filter(function (value, index) {
+      return Number(value.type) !== 1 && Number(value.type) !== 2;
+    });
+
+    setFilterType({
+      ...filterType,
+      filter: 3,
+      coupons3: filtered,
+      numberCoupons: Array.from(filtered).length,
+    });
+  };
+
   return (
     <View style={styles.container}>
-      {coupons.length !== 0 ? (
-        <FlatList
-          data={coupons}
-          renderItem={renderCouponItem}
-          key={key => key.id}
-        />
+      {filterType.numberCoupons.length !== 0 ? (
+        <>
+          {/* --------------------FILTERING / SORT ------------------------ */}
+          <View style={styles.filterContainer}>
+            <Icon
+              style={styles.filterItem}
+              name={'filter'}
+              type={'feather'}
+              color={colors.backgroundBottomTabInactive}
+              size={30}
+            />
+            <TouchableOpacity
+              style={styles.filterItem}
+              onPress={() => sortCouponsByType()}
+              activeOpacity={0.5}>
+              <Icon
+                name={'list-number'}
+                type={'foundation'}
+                color={colors.backgroundBottomTabInactive}
+                size={30}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.filterItem}
+              onPress={() => showOnlyTypeOneCoupons()}
+              activeOpacity={0.5}>
+              <Icon
+                name={'numeric-1-circle-outline'}
+                type={'material-community'}
+                color={colors.backgroundBottomTabInactive}
+                size={30}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.filterItem}
+              onPress={() => showOnlyTypeTwoCoupons()}
+              activeOpacity={0.5}>
+              <Icon
+                name={'numeric-2-circle-outline'}
+                type={'material-community'}
+                color={colors.backgroundBottomTabInactive}
+                size={30}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.filterItem}
+              onPress={() => showOnlyTypeThreeCoupons()}
+              activeOpacity={0.5}>
+              <Icon
+                name={'numeric-3-circle-outline'}
+                type={'material-community'}
+                color={colors.backgroundBottomTabInactive}
+                size={30}
+              />
+            </TouchableOpacity>
+            <Text style={styles.textFilter}>
+              Total cupoane: {filterType.numberCoupons}
+            </Text>
+          </View>
+          {/* -------------------- LIST OF COUPONS  ------------------------ */}
+          {filterType.numberCoupons !== 0 ? (
+            <View style={styles.couponsContainer}>
+              <FlatList
+                data={
+                  filterType.filter === 0
+                    ? coupons
+                    : filterType.filter === 1
+                    ? filterType.coupons1
+                    : filterType.filter === 2
+                    ? filterType.coupons2
+                    : filterType.filter === 3
+                    ? filterType.coupons3
+                    : coupons
+                }
+                renderItem={renderCouponItem}
+                key={key => key.id}
+              />
+            </View>
+          ) : (
+            <RenderEmptyList title_message={'Nu aveti cupoane de acest tip '} />
+          )}
+        </>
       ) : (
         <RenderEmptyList title_message={'Nu aveti cupoane de reducere'} />
       )}
@@ -104,6 +232,29 @@ const styles = StyleSheet.create({
     height: height,
     marginBottom: 60,
     marginTop: 10,
+  },
+  couponsContainer: {
+    marginTop: 40,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    width: width * 0.87,
+    marginBottom: 10,
+    borderBottomColor: colors.backgroundButtonActive,
+    borderBottomWidth: 1,
+    paddingBottom: 4,
+    position: 'absolute',
+    top: 0,
+  },
+  filterItem: {
+    paddingRight: 10,
+  },
+  textFilter: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: colors.backgroundButtonActive,
+    marginTop: 4,
   },
 });
 

@@ -17,7 +17,6 @@ import {
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import colors from '../../../config/colors/colors';
-import {MenuProductsContext, UserContext} from '../../../App';
 import api_axios from '../../../config/api/api_axios';
 
 const height = Dimensions.get('screen').height;
@@ -25,10 +24,8 @@ const width = Dimensions.get('screen').width;
 const menu_container_width = width - 50;
 
 function DetailsStandard({navigation, route}) {
-  // const [menuDataInCart, setMenuDataInCart] = useContext(UserContext);
-  const [menuDataInCart, setMenuDataInCart] = useState(
-    route.params.menuStandardObj,
-  );
+  const menuDataInCart = route.params.menuStandardObj;
+
   const [quantity, setQuantity] = useState(menuDataInCart.quantity);
   const removeFromQuantity = () => {
     if (quantity > 0) {
@@ -62,31 +59,28 @@ function DetailsStandard({navigation, route}) {
           quantity: menuDataInCart.quantity + quantity,
         };
 
-        // setMenuDataInCart({
-        //   ...menuDataInCart,
-        //   menuDataInCart: addStandardMenu,
-        // });
-
         const dataToSend = {
           productId: menuDataInCart.key,
           cantity: addStandardMenu.quantity,
         };
+
         console.log(dataToSend);
         let headers = {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
         };
+
         const response = await api_axios.post(
           `/shoppingItems/create/${menuDataInCart.userId}`,
           dataToSend,
           headers,
         );
-        console.log(response.data);
+
         if (response.status === 201 || response.status === 200) {
           showToastWithGravity('Produs adaugat in cos!');
-          route.params.onGoBack(response.data);
-          // navigation.goBack();
+          // route.params.onGoBack(response.data);
+          navigation.goBack();
         }
       }
     } catch (error) {
@@ -96,11 +90,7 @@ function DetailsStandard({navigation, route}) {
       }
     }
   };
-  // useEffect(() => {
-  //   return () => {
-  //     menuDataInCart;
-  //   };
-  // }, [menuDataInCart]);
+
   return (
     <View style={styles.container}>
       <View style={{position: 'absolute', top: 5, left: 5}}>
@@ -118,7 +108,7 @@ function DetailsStandard({navigation, route}) {
           animation={'bounceIn'}
           duration={800}>
           <Image
-            source={menuDataInCart.src}
+            source={{uri: menuDataInCart.src}}
             style={styles.image}
             resizeMode="cover"
           />
@@ -135,7 +125,7 @@ function DetailsStandard({navigation, route}) {
               styles.details_text,
               {fontWeight: '700', marginBottom: -10},
             ]}>
-            Ingrediente
+            Detalii produs
           </Text>
           <Text style={styles.details_text}>{menuDataInCart.details} </Text>
           <View style={styles.buttonsAddRemoveQuantity}>

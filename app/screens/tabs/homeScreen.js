@@ -41,8 +41,9 @@ const enum_categories = {
 
 const defaultMenusData = [
   {
-    id: 'augfahgagag2aifgahfpj',
-    image: require('../../assets/14.jpg'),
+    id: '3',
+    image:
+      'https://blobcontainercomplexfood.blob.core.windows.net/complexfoodcontainer1/15.jpg',
     title: 'Cheese Cake',
     price: 5.99,
     quantity: 0,
@@ -51,8 +52,9 @@ const defaultMenusData = [
       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
   },
   {
-    id: 'aafag222222222gagafpj',
-    image: require('../../assets/15.jpg'),
+    id: '1',
+    image:
+      'https://blobcontainercomplexfood.blob.core.windows.net/complexfoodcontainer1/15.jpg',
     title: 'Cheese Cake',
     price: 5.99,
     quantity: 0,
@@ -61,8 +63,9 @@ const defaultMenusData = [
       "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
   },
   {
-    id: 'aafag22222',
-    image: require('../../assets/24.jpg'),
+    id: '2',
+    image:
+      'https://blobcontainercomplexfood.blob.core.windows.net/complexfoodcontainer1/15.jpg',
     title: 'Cheese Cake',
     price: 5.99,
     quantity: 0,
@@ -72,14 +75,55 @@ const defaultMenusData = [
   },
 ];
 
+const categoriesData = [
+  {
+    key: '1fbaijoga',
+    type: enum_categories.SOUP,
+    title: 'Supe/Ciorbe',
+    src: require('../../assets/soup.png'),
+  },
+  {
+    key: '1f2oga',
+    type: enum_categories.MEAT,
+    title: 'Preparate carne',
+    src: require('../../assets/meat.png'),
+  },
+  {
+    key: '1fbfa',
+    type: enum_categories.GARNISH,
+    title: 'Garnituri',
+    src: require('../../assets/garnish.png'),
+  },
+  {
+    key: '1f4oga',
+    type: enum_categories.DESERT,
+    title: 'Desert',
+    src: require('../../assets/desert.png'),
+  },
+  {
+    key: '1fb2ga',
+    type: enum_categories.SALAD,
+    title: 'Salate',
+    src: require('../../assets/salad.png'),
+  },
+  {
+    key: '1f1a',
+    type: enum_categories.DRINK,
+    title: 'Bauturi',
+    src: require('../../assets/drink.png'),
+  },
+];
+
 function Home({navigation}) {
   // const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerId = userDataLogin.id || 1;
   const [menuData, setMenuData] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [infoToSearch, setInfoToSearch] = useState('');
 
   useEffect(() => {
+    // eslint-disable-next-line no-undef
+    const ac = new AbortController();
     const getProducts = async () => {
       try {
         let headers = {
@@ -95,68 +139,14 @@ function Home({navigation}) {
       }
     };
 
-    const getOrders = async () => {
-      try {
-        let headers = {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-        };
-
-        const response = await api_axios.get(`/orders/${buyerId}`, headers);
-        setOrders(response.data);
-      } catch (error) {
-        console.log(error.response.status);
-      }
-    };
-
     getProducts();
-    getOrders();
     // return () => {
+    //   ac.abort();
     //   setMenuData([]);
+
     // };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const [infoToSearch, setInfoToSearch] = useState('');
-  const categoriesData = [
-    {
-      key: '1fbaijoga',
-      type: enum_categories.SOUP,
-      title: 'Supe/Ciorbe',
-      src: require('../../assets/soup.png'),
-    },
-    {
-      key: '1f2oga',
-      type: enum_categories.MEAT,
-      title: 'Preparate carne',
-      src: require('../../assets/meat.png'),
-    },
-    {
-      key: '1fbfa',
-      type: enum_categories.GARNISH,
-      title: 'Garnituri',
-      src: require('../../assets/garnish.png'),
-    },
-    {
-      key: '1f4oga',
-      type: enum_categories.DESERT,
-      title: 'Desert',
-      src: require('../../assets/desert.png'),
-    },
-    {
-      key: '1fb2ga',
-      type: enum_categories.SALAD,
-      title: 'Salate',
-      src: require('../../assets/salad.png'),
-    },
-    {
-      key: '1f1a',
-      type: enum_categories.DRINK,
-      title: 'Bauturi',
-      src: require('../../assets/drink.png'),
-    },
-  ];
 
   const MenuItem = props => (
     <View style={styles.menuContainer}>
@@ -164,7 +154,7 @@ function Home({navigation}) {
         underlayColor={colors.white}
         onPress={() => goToDetailsStandard(props)}>
         <Image
-          source={props.image}
+          source={{uri: props.image}}
           style={styles.menu_standard_image}
           resizeMode="cover"
         />
@@ -246,7 +236,7 @@ function Home({navigation}) {
     });
     navigation.navigate('DetailsCategoriesScreen', {
       menuDataForCategories: dataCategories,
-      onGoBack: getCartIdFromShoppingHandler,
+      // onGoBack: getCartIdFromShoppingHandler,
     });
   };
   const goToDetailsStandard = props => {
@@ -262,7 +252,7 @@ function Home({navigation}) {
     };
     navigation.navigate('DetailsStandardScreen', {
       menuStandardObj: menuStandardObj,
-      onGoBack: getCartIdFromShoppingHandler,
+      // onGoBack: getCartIdFromShoppingHandler,
     });
   };
 
@@ -275,6 +265,12 @@ function Home({navigation}) {
       console.log('search bar');
       //cu api
     }
+  };
+
+  const goToOrdersHandler = () => {
+    navigation.navigate('OrdersScreen', {
+      buyerId: buyerId,
+    });
   };
 
   return (
@@ -357,19 +353,28 @@ function Home({navigation}) {
           </View>
 
           {/* ------------------- ORDERS ------------------- */}
-          <View style={styles.orders}>
-            <Text style={[styles.textSuggest, {color: colors.blackGrey}]}>
+          <View style={styles.ordersContainer}>
+            <Text
+              style={[
+                styles.textSuggest,
+                {color: colors.blackGrey, marginLeft: 10},
+              ]}>
               Comenziile mele
             </Text>
-            {/* vom face partea de order uri si bagat in stack detailii de la fiecare comanda cu produsele aferente */}
-            <FlatList
-              horizontal={true}
-              data={categoriesData}
-              keyExtractor={item => item.key}
-              renderItem={renderCategoryItem}
-            />
+            <Animatable.View
+              animation={'pulse'}
+              duration={800}
+              style={styles.orderBackground}>
+              <Icon
+                style={styles.ordersItem}
+                onPress={() => goToOrdersHandler()}
+                name={'isv'}
+                type={'ant-design'}
+                size={32}
+                color={colors.white}
+              />
+            </Animatable.View>
           </View>
-
           {/* End footer */}
         </View>
 
@@ -382,18 +387,18 @@ function Home({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: colors.backgroundApp,
   },
   header: {
-    paddingTop: 20,
+    paddingTop: 10,
     alignItems: 'center',
   },
   menuStandardContainer: {
     marginLeft: 5,
     marginRight: 5,
-    paddingTop: 10,
+    paddingTop: 5,
     height: height * 0.5,
   },
   menuContainer: {
@@ -454,7 +459,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginLeft: 10,
-    marginTop: height - height * 0.99,
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -462,7 +466,7 @@ const styles = StyleSheet.create({
 
   menu_standard_image: {
     width: menu_container_width,
-    height: 280,
+    height: 300,
     borderRadius: 16,
   },
   title_menu: {
@@ -473,7 +477,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   price_menu: {
-    marginTop: 12,
     textAlign: 'right',
     fontSize: 16,
     color: colors.backgroundButtonActive,
@@ -484,6 +487,8 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    width: width,
+    height: 140,
   },
   categories_container: {
     marginTop: 3,
@@ -511,10 +516,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  orders: {
+  ordersContainer: {
     display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'baseline',
+    width: width,
+    height: 80,
+    marginTop: -20,
+  },
+  ordersItem: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 10,
+  },
+  orderBackground: {
+    marginTop: 3,
+    marginLeft: 10,
+    marginRight: 10,
+    flex: 1,
+    borderRadius: 16,
+    width: 60,
+    height: 60,
+    backgroundColor: colors.backgroundButtonActive,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
   },
 });
 

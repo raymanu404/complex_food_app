@@ -30,7 +30,6 @@ const styles = StyleSheet.create({
   title_menu: {
     paddingBottom: 25,
     paddingVertical: 8,
-    fontFamily: 'Poppins',
     fontSize: 18,
     textAlign: 'center',
     color: colors.blackGrey,
