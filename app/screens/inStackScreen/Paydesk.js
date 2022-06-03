@@ -127,7 +127,7 @@ function PayDesk({navigation, route}) {
   const RenderToastSuccess = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.62}
+        multiplier={0.62}
         showComponent={props.showComponent}
         status={'success'}
         title_message={props.title_message}
@@ -139,7 +139,7 @@ function PayDesk({navigation, route}) {
   const RenderToastFail = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.62}
+        multiplier={0.62}
         showComponent={props.showComponent}
         status={'fail'}
         title_message={props.title_message}

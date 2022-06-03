@@ -17,7 +17,7 @@ const RenderToastMessage = props => {
 
   const popIn = () => {
     Animated.timing(popAnim, {
-      toValue: windowHeight * props.multiplicator * -1,
+      toValue: windowHeight * props.multiplier * -1,
       duration: 300,
       useNativeDriver: true,
     }).start(popOut());

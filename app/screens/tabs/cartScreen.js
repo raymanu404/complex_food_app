@@ -107,7 +107,7 @@ function Cart({navigation}) {
   const RenderToastSuccess = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.8}
+        multiplier={0.8}
         showComponent={props.showComponent}
         status={'success'}
         title_message={props.title_message}
@@ -119,7 +119,7 @@ function Cart({navigation}) {
   const RenderToastFail = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.8}
+        multiplier={0.8}
         showComponent={props.showComponent}
         status={'fail'}
         title_message={props.title_message}

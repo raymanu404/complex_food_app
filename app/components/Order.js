@@ -56,47 +56,69 @@ function Order(props) {
     return `Data comanda: ${orderTime} / ${orderDate}`;
   };
   return (
-    <View style={[styles.orderContainer, {backgroundColor: getStatusColor()}]}>
-      <Text style={styles.text_order}>{getDateFormat()}</Text>
-      <ImageBackground
-        style={styles.order_info}
-        source={backgroundImageOrder}
-        resizeMode="cover">
-        <Text style={styles.text_order}>
-          Status comanda: {getStatusOrder()}
-        </Text>
-      </ImageBackground>
-      <View style={styles.codeContainer}>
-        <Text style={styles.text_code}>
-          Cod comanda: <Text style={styles.text_order}>{props.code}</Text>
-        </Text>
-        <Icon
-          style={{paddingLeft: 10}}
-          name={'check-circle'}
-          type={'feather'}
-          color={colors.statusOrderDone}
-          size={26}
-        />
+    <View style={styles.container}>
+      {/* ---------------------------- HEADER-------------------- */}
+      <View style={styles.header}>
+        <Text style={styles.text_order}>{getDateFormat()}</Text>
       </View>
-      <TouchableOpacity
-        onPress={() => props.goToOrderItems(props.orderId)}
-        activeOpacity={0.8}>
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>Vezi produsele</Text>
+      <View
+        style={[styles.orderContainer, {backgroundColor: getStatusColor()}]}>
+        <ImageBackground
+          style={styles.order_info}
+          source={backgroundImageOrder}
+          resizeMode="cover">
+          <Text style={styles.text_order}>
+            Status comanda: {getStatusOrder()}
+          </Text>
+        </ImageBackground>
+        <View style={styles.codeContainer}>
+          <Text style={styles.text_code}>
+            Cod comanda: <Text style={styles.text_order}>{props.code}</Text>
+          </Text>
+          <Icon
+            style={{paddingLeft: 10}}
+            name={'check-circle'}
+            type={'feather'}
+            color={colors.statusOrderDone}
+            size={26}
+          />
         </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => props.goToOrderItems(props.orderId, props.totalPrice)}
+          activeOpacity={0.8}>
+          <View style={styles.button}>
+            <Text style={styles.buttonText}>Vezi produsele</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.backgroundApp,
+  },
+  header: {
+    backgroundColor: colors.backgroundApp,
+    width: order_container_width,
+    height: 50,
+    marginBottom: -15,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
   orderContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     height: order_container_height,
     width: order_container_width,
-    marginTop: 5,
-    marginBottom: 10,
+    marginTop: 10,
+    marginBottom: 20,
     borderRadius: 16,
     shadowColor: colors.black,
     shadowOffset: {

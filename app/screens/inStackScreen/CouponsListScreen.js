@@ -75,7 +75,7 @@ function CouponsList({navigation, route}) {
   const RenderToastSuccess = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.77}
+        multiplier={0.77}
         showComponent={props.showComponent}
         status={'success'}
         title_message={'Succes!'}
@@ -87,7 +87,7 @@ function CouponsList({navigation, route}) {
   const RenderToastFail = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.77}
+        multiplier={0.77}
         showComponent={props.showComponent}
         status={'fail'}
         title_message={'Eroare!'}

@@ -22,6 +22,7 @@ const menu_container_width = width - 50;
 
 function OrderItemsScreen({navigation, route}) {
   const orderId = route.params.orderId;
+  const totalPrice = route.params.totalPrice;
   const [orderItems, setOrderItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -138,6 +139,13 @@ function OrderItemsScreen({navigation, route}) {
               keyExtractor={item => item.orderItemId}
               renderItem={renderMenuItem}
             />
+
+            <View style={styles.button}>
+              <Text style={styles.buttonText}>
+                Total comanda:{' '}
+                <Text style={styles.buttonTextPrice}>{totalPrice} RON</Text>
+              </Text>
+            </View>
           </>
         ) : (
           <RenderEmptyList title_message="Nu aveti produse in aceasta comanda!" />
@@ -211,6 +219,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingLeft: 10,
+  },
+  button: {
+    marginTop: 10,
+    marginBottom: 10,
+    display: 'flex',
+    alignSelf: 'center',
+    justifyContent: 'center',
+    width: width - 40,
+    height: 42,
+    borderRadius: 16,
+    backgroundColor: colors.backgroundButtonActive,
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.27,
+    shadowRadius: 4.65,
+    elevation: 6,
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: colors.white,
+    fontWeight: '500',
+    fontSize: 16,
+    letterSpacing: 1,
+  },
+  buttonTextPrice: {
+    textAlign: 'center',
+    color: colors.white,
+    fontWeight: 'bold',
+    fontSize: 18,
+    letterSpacing: 1,
   },
 });
 export default OrderItemsScreen;

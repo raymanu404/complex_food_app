@@ -50,7 +50,7 @@ function DetailsCategories({navigation, route}) {
   const RenderToastSuccess = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.79}
+        multiplier={0.79}
         showComponent={props.showComponent}
         status={'success'}
         title_message={props.title_message}
@@ -62,7 +62,7 @@ function DetailsCategories({navigation, route}) {
   const RenderToastFail = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.79}
+        multiplier={0.79}
         showComponent={props.showComponent}
         status={'fail'}
         title_message={props.title_message}

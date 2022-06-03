@@ -53,7 +53,7 @@ function DetailsStandard({navigation, route}) {
   const RenderToastSuccess = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.87}
+        multiplier={0.87}
         showComponent={props.showComponent}
         status={'success'}
         title_message={props.title_message}
@@ -65,7 +65,7 @@ function DetailsStandard({navigation, route}) {
   const RenderToastFail = props => {
     return (
       <RenderToastMessage
-        multiplicator={0.87}
+        multiplier={0.87}
         showComponent={props.showComponent}
         status={'fail'}
         title_message={props.title_message}
