@@ -372,7 +372,7 @@ function Login({navigation}) {
 
           <TouchableOpacity
             onPress={() => forgotPasswordHandler()}
-            style={{marginTop: -10}}>
+            style={{marginTop: -18}}>
             <Text style={styles.text}>Ai uitat parola?</Text>
           </TouchableOpacity>
           <View style={styles.loginButtonsContainer}>
@@ -383,7 +383,7 @@ function Login({navigation}) {
                 <Text style={styles.buttonText}>Login</Text>
               </View>
             </TouchableHighlight>
-            <Text style={styles.textCenter}>-sau-</Text>
+            {/* <Text style={styles.textCenter}>-sau-</Text> */}
             {/* <TouchableHighlight
               onPress={() => console.log()}
               underlayColor={colors.white}>
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
     color: colors.blackGrey,
     fontWeight: '500',
     marginTop: 5,
-    fontSize: 15,
+    fontSize: 14,
     marginLeft: 5,
   },
   textCenter: {

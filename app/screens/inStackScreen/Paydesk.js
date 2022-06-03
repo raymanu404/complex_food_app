@@ -24,6 +24,7 @@ import {
   useStripe,
 } from '@stripe/stripe-react-native';
 import api_axios from '../../../config/api/api_axios';
+import RenderToastMessage from '../../components/RenderToastMessage';
 
 const width = Dimensions.get('screen').width;
 if (Platform.OS === 'android') {
@@ -39,6 +40,16 @@ function PayDesk({navigation, route}) {
   const [textButtonPay, setTextButtonPay] = useState('Plateste');
   const {initPaymentSheet, presentPaymentSheet} = useStripe();
   const {confirmPayment, loading} = useConfirmPayment();
+  const [displayMessage, setDisplayMessage] = useState({
+    successTitle: '',
+    successMessage: '',
+    failTitle: '',
+    failMessage: '',
+  });
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
+  });
 
   const ref1 = useRef(null);
   const ref2 = useRef(null);
@@ -52,9 +63,9 @@ function PayDesk({navigation, route}) {
 
   const [userInfoBilling, setUserInfoBilling] = useState({
     amount: 0,
-    city: 'Lugoh',
-    country: 'RO',
-    address: 'str gh',
+    city: '',
+    country: '',
+    address: '',
     validDataCard: false,
     completeCart: false,
   });
@@ -113,24 +124,88 @@ function PayDesk({navigation, route}) {
     }
   };
 
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.62}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.62}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
   const checkUserDataFromForm = () => {
     if (userInfoBilling.country === '') {
-      Alert.alert('Tara invalida!', 'Tara este invalida!');
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Eroare!',
+        failMessage: 'Tara invalida!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
       return;
     }
 
     if (userInfoBilling.city === '') {
-      Alert.alert('Oras invalid!', 'Orasul este invalid!');
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Eroare!',
+        failMessage: 'Oras invalid!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
       return;
     }
 
     if (userInfoBilling.address === '') {
-      Alert.alert('Adresa invalida!', 'Adresa este invalida!');
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Eroare!',
+        failMessage: 'Adresa invalida!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
       return;
     }
 
-    if (userInfoBilling.amount === 0) {
-      Alert.alert('Suma invalida!', 'Suma pentru depunere este invalida!');
+    if (Number(userInfoBilling.amount) === 0) {
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Eroare!',
+        failMessage: 'Suma pentru depunere este de minim 2 RON',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
       return;
     }
     // let userinfo = {
@@ -146,6 +221,11 @@ function PayDesk({navigation, route}) {
   };
 
   const amountTextHandler = val => {
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
     if (Number(val) > 0) {
       setTextButtonPay(`Plateste ${val + ' RON'}`);
       setUserInfoBilling({
@@ -162,18 +242,33 @@ function PayDesk({navigation, route}) {
   };
 
   const changeAddressHandler = val => {
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
     setUserInfoBilling({
       ...userInfoBilling,
       address: val,
     });
   };
   const changeCityHandler = val => {
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
     setUserInfoBilling({
       ...userInfoBilling,
       city: val,
     });
   };
   const changeCountryHandler = val => {
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
     setUserInfoBilling({
       ...userInfoBilling,
       country: val,
@@ -220,8 +315,8 @@ function PayDesk({navigation, route}) {
   };
 
   const confirmPaymentFunction = async () => {
-    console.log('asfaf');
     try {
+      checkUserDataFromForm();
       fetchPayementIntentClientSecret();
       if (!clientSecret) {
         return;
@@ -233,10 +328,17 @@ function PayDesk({navigation, route}) {
           paymentMethodType: 'Card',
         });
         if (error) {
-          Alert.alert(
-            'Error',
-            `error message: ${error.message} with error code: ${error.code}`,
-          );
+          setDisplayMessage({
+            ...displayMessage,
+            failTitle: 'Eroare!',
+            failMessage: 'Upps, eroare de plata!',
+          });
+
+          setShowRenderToast({
+            ...showRenderToast,
+            success: true,
+            fail: false,
+          });
         } else {
           console.log(paymentIntent);
           if (paymentIntent.status === 'Succeeded') {
@@ -253,26 +355,52 @@ function PayDesk({navigation, route}) {
             );
 
             if (reponseDepositBalance.status === 200) {
-              Alert.alert(
-                'Depozitare reusita!',
-                `${reponseDepositBalance.data}`,
-              );
+              setDisplayMessage({
+                ...displayMessage,
+                successTitle: 'Succes!',
+                successMessage: 'Depunerea dumeanvoastra a fost cu succes!',
+              });
+
+              setShowRenderToast({
+                ...showRenderToast,
+                success: true,
+                fail: false,
+              });
               if (route.params.onGoBack) {
                 route.params.onGoBack(userInfoBilling.amount);
               }
-              navigation.goBack();
+              setTimeout(() => {
+                navigation.goBack();
+              }, 1000);
             } else {
-              Alert.alert(
-                'Depozitare nereusita!',
-                `${reponseDepositBalance.data}`,
-              );
+              setDisplayMessage({
+                ...displayMessage,
+                failTitle: 'Eroare!',
+                failMessage: `Depozitare nereusita ${reponseDepositBalance.data}`,
+              });
+
+              setShowRenderToast({
+                ...showRenderToast,
+                success: true,
+                fail: false,
+              });
             }
           }
         }
 
         // console.log(error.message);
       } else {
-        Alert.alert('Validare incompleta', 'Valideaza-ti cardul!');
+        setDisplayMessage({
+          ...displayMessage,
+          failTitle: 'Eroare!',
+          failMessage: 'Cardul este invalid!',
+        });
+
+        setShowRenderToast({
+          ...showRenderToast,
+          success: true,
+          fail: false,
+        });
       }
     } catch (error) {
       console.log(error);
@@ -283,7 +411,8 @@ function PayDesk({navigation, route}) {
     if (countOnBlurAmount === 0) {
       if (flag) {
         setCountOnBlurAmount(countOnBlurAmount + 1);
-        initializePaymentSheet();
+        console.log(`on blur amount : ${countOnBlurAmount}`);
+        // initializePaymentSheet();
       }
     }
   };
@@ -326,7 +455,6 @@ function PayDesk({navigation, route}) {
             changeTextInput={changeCountryHandler}
             OnBlurMethod={countryOnBlurHandler}
             returnKeyTypeBoolean={true}
-            ref={ref1}
           />
           <UserField
             widthStyle={width - 30}
@@ -340,7 +468,6 @@ function PayDesk({navigation, route}) {
             changeTextInput={changeCityHandler}
             OnBlurMethod={cityOnBlurHandler}
             returnKeyTypeBoolean={true}
-            ref={ref2}
           />
           <UserField
             widthStyle={width - 30}
@@ -354,7 +481,6 @@ function PayDesk({navigation, route}) {
             changeTextInput={changeAddressHandler}
             OnBlurMethod={addressOnBlurHandler}
             returnKeyTypeBoolean={true}
-            ref={ref3}
           />
           {/* <UserField
           widthStyle={width - 30}
@@ -392,7 +518,6 @@ function PayDesk({navigation, route}) {
               changeTextInput={amountTextHandler}
               OnBlurMethod={amountOnBlurHandler}
               returnKeyTypeBoolean={false}
-              ref={ref4}
             />
             <UserField
               widthStyle={width * 0.2}
@@ -453,6 +578,23 @@ function PayDesk({navigation, route}) {
               style={{marginTop: 10}}
             />
           )}
+          <>
+            {showRenderToast.success ? (
+              <RenderToastSuccess
+                showComponent={true}
+                title_message={displayMessage.successTitle}
+                message={displayMessage.successMessage}
+              />
+            ) : showRenderToast.fail ? (
+              <RenderToastFail
+                showComponent={true}
+                title_message={displayMessage.failTitle}
+                message={displayMessage.failMessage}
+              />
+            ) : (
+              <View style={styles.emptyDiv}></View>
+            )}
+          </>
         </View>
       </TouchableWithoutFeedback>
     </StripeProvider>
@@ -486,6 +628,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: width - 30,
+  },
+  emptyDiv: {
+    marginBottom: 60,
   },
 });
 

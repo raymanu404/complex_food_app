@@ -5,10 +5,12 @@ import * as Animatable from 'react-native-animatable';
 import api_axios from '../../../config/api/api_axios';
 import RenderEmptyList from '../../components/RenderEmptyList';
 import Order from '../../components/Order';
+import Loading from '../loading';
 
 function OrdersScreen({navigation, route}) {
   const [orders, setOrders] = useState([]);
   const buyerId = route.params.buyerId;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getOrders = async () => {
@@ -24,9 +26,14 @@ function OrdersScreen({navigation, route}) {
       } catch (error) {
         console.log(error.response.status);
       }
+      setLoading(false);
     };
     getOrders();
   }, [buyerId]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const goToOrderItemHandler = orderId => {
     navigation.navigate('OrderItemsScreen', {

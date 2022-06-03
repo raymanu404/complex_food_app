@@ -14,6 +14,7 @@ import * as Animatable from 'react-native-animatable';
 import api_axios from '../../../config/api/api_axios';
 import colors from '../../../config/colors/colors';
 import RenderEmptyList from '../../components/RenderEmptyList';
+import Loading from '../loading';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -22,6 +23,7 @@ const menu_container_width = width - 50;
 function OrderItemsScreen({navigation, route}) {
   const orderId = route.params.orderId;
   const [orderItems, setOrderItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getOrderItemAsync = async () => {
@@ -40,9 +42,14 @@ function OrderItemsScreen({navigation, route}) {
       } catch (error) {
         console.log(error.response.status);
       }
+      setLoading(false);
     };
     getOrderItemAsync();
   }, [orderId]);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const renderFront = props => {
     return (

@@ -10,11 +10,15 @@ import {
   TouchableHighlight,
   Dimensions,
   TouchableOpacity,
+  Animated,
+  Button,
 } from 'react-native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
-import api_axios from '../../config/api/api_axios';
 import colors from '../../../config/colors/colors';
+import api_axios from '../../../config/api/api_axios';
+import RenderPasswordImage from '../../components/RenderPasswordImage';
+import RenderToastMessage from '../../components/RenderToastMessage';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -23,6 +27,7 @@ const MAX_PASSWORD_LENGTH = 40;
 
 function ForgotPassword({navigation, route}) {
   const idUser = route.params.idUser;
+
   const [onFocusInput, setOnFocusInput] = useState({
     firstNameOnFocus: false,
     lastNameOnFocus: false,
@@ -31,7 +36,6 @@ function ForgotPassword({navigation, route}) {
     passwordOnFocus: false,
     re_passwordOnFocus: false,
   });
-
   const passwordRef = useRef(null);
   const re_passwordRef = useRef(null);
 
@@ -50,9 +54,38 @@ function ForgotPassword({navigation, route}) {
   });
 
   const [passwordVisible, setPasswordVisible] = useState({
-    password: false,
-    re_password: false,
+    password: true,
+    re_password: true,
   });
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
+  });
+
+  //renderToastMessage props
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.77}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={'Succes!'}
+        message={'Parola a fost schimbata cu succes!'}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.77}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={'Eroare!'}
+        message={props.message}
+      />
+    );
+  };
 
   // CHANGE PASSWORD AND RE_PASSWORD VISIBILITY
   const changePasswordVisibility = () => {
@@ -81,6 +114,7 @@ function ForgotPassword({navigation, route}) {
         ...invalidInput,
         passwordError: false,
         passwordTypeError: '',
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -90,6 +124,7 @@ function ForgotPassword({navigation, route}) {
       setInvalidInput({
         ...invalidInput,
         passwordError: true,
+        emptyFiledsError: '',
       });
     }
 
@@ -98,7 +133,9 @@ function ForgotPassword({navigation, route}) {
 
   // RE_PASSWORD TEXT HANDLER
   const re_passwordTextHandler = val => {
-    if (String(val).length !== 0 && String(val) === String(userInfo.password)) {
+    if (
+      String(val).length !== 0 /*& String(val) === String(userInfo.password)*/
+    ) {
       setUserInfo({
         ...userInfo,
         re_password: val,
@@ -108,6 +145,7 @@ function ForgotPassword({navigation, route}) {
         ...invalidInput,
         re_passwordError: false,
         re_passwordTypeError: '',
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -117,19 +155,26 @@ function ForgotPassword({navigation, route}) {
       setInvalidInput({
         ...invalidInput,
         re_passwordError: true,
+        emptyFiledsError: '',
       });
     }
     onFocusPassword(val, 're_password');
   };
 
   const onFocusPassword = (val, passowrdType) => {
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
     switch (passowrdType) {
       case 'password':
         if (!String(val).match(new RegExp(/[0-9]/))) {
           setInvalidInput({
             ...invalidInput,
             passwordError: true,
-            passwordTypeError: 'Parola trebuie sa contina [0-9]',
+            emptyFiledsError: '',
+            passwordTypeError: 'Parola trebuie sa contina cifre',
           });
         }
 
@@ -149,6 +194,7 @@ function ForgotPassword({navigation, route}) {
           setInvalidInput({
             ...invalidInput,
             re_passwordError: true,
+            emptyFiledsError: '',
             re_passwordTypeError: 'Parolele nu corespund!',
           });
         }
@@ -162,35 +208,94 @@ function ForgotPassword({navigation, route}) {
   };
 
   const changePasswordHandler = async () => {
-    try {
-      let headers = {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-      };
+    console.log('schimabre parola');
+    const conds = Boolean(
+      !invalidInput.passwordError &&
+        !invalidInput.re_passwordError &&
+        String(userInfo.password) === String(userInfo.re_password) &&
+        userInfo.password.length !== 0 &&
+        userInfo.re_password.length !== 0,
+    );
 
-      let dataToSend = {
-        password: userInfo.password,
-      };
+    if (String(userInfo.password) !== String(userInfo.re_password)) {
+      setInvalidInput({
+        ...invalidInput,
+        re_passwordError: true,
+        emptyFiledsError: '',
+        re_passwordTypeError: 'Parolele nu corespund!',
+      });
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
+      return;
+    }
 
-      const responseChangePassword = await api_axios.post(
-        `/buyers/change-password/${idUser}`,
-        dataToSend,
-        headers,
-      );
+    if (conds) {
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: false,
+      });
+      setInvalidInput({
+        ...invalidInput,
+        passwordError: false,
+        emptyFiledsError: '',
+        re_passwordError: false,
+        re_passwordTypeError: '',
+        passwordTypeError: '',
+      });
+      try {
+        let headers = {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        };
+        let dataToSend = {
+          password: userInfo.password,
+        };
 
-      if (responseChangePassword.status === 200) {
-        if (
-          String(responseChangePassword.data).startsWith(
-            'Password was updated successfully!',
-          )
-        ) {
-          //un timer ceva pentru 2 secunde si un mesaj de confirmare
-          navigation.navigate('LoginScreen');
+        const responseChangePassword = await api_axios.patch(
+          `/buyers/change-password/${idUser}`,
+          dataToSend,
+          headers,
+        );
+
+        if (responseChangePassword.status === 200) {
+          if (
+            String(responseChangePassword.data).startsWith(
+              'Password was updated successfully!',
+            )
+          ) {
+            setShowRenderToast({
+              ...showRenderToast,
+              success: true,
+              fail: false,
+            });
+            setTimeout(() => {
+              navigation.navigate('LoginScreen');
+            }, 1000);
+          }
         }
+      } catch (error) {
+        setShowRenderToast({
+          ...showRenderToast,
+          success: false,
+          fail: true,
+        });
+        console.log(error.response);
       }
-    } catch (error) {
-      console.log(error.response);
+    } else {
+      setInvalidInput({
+        ...invalidInput,
+        emptyFiledsError: 'Campuri necompletate!',
+      });
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
     }
   };
 
@@ -200,6 +305,14 @@ function ForgotPassword({navigation, route}) {
         Keyboard.dismiss();
       }}>
       <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.iconGoBack}
+          onPress={() => navigation.goBack()}>
+          <Icon name={'arrow-left'} type="feather" color={colors.black} />
+        </TouchableOpacity>
+
+        <RenderPasswordImage title_message={'Schimbare parola'} />
+
         {/* ------------------------------------- PAROLA -------------------------------------- */}
         <View style={styles.displayColumn}>
           <View
@@ -233,7 +346,7 @@ function ForgotPassword({navigation, route}) {
                 setOnFocusInput({...onFocusInput, passwordOnFocus: false})
               }
               autoCapitalize="none"
-              placeholder="Parola"
+              placeholder="Parola noua"
               secureTextEntry={passwordVisible.password}
               placeholderTextColor={colors.backgroundButtonActive}
             />
@@ -251,6 +364,7 @@ function ForgotPassword({navigation, route}) {
             {invalidInput.passwordError ? invalidInput.passwordTypeError : ''}
           </Text>
         </View>
+
         {/* ------------------------------------- CONFIRMARE PAROLA --------------------------------------*/}
         <View style={styles.displayColumn}>
           <View
@@ -308,13 +422,32 @@ function ForgotPassword({navigation, route}) {
               : ''}
           </Text>
         </View>
-        <TouchableHighlight
-          underlayColor={colors.backgroundApp}
+        <Text style={styles.textErrorInput}>
+          {invalidInput.emptyFiledsError}
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.95}
           onPress={() => changePasswordHandler()}>
           <View style={styles.button}>
             <Text style={styles.buttonText}>Schimba parola</Text>
           </View>
-        </TouchableHighlight>
+        </TouchableOpacity>
+        <>
+          {showRenderToast.success ? (
+            <RenderToastSuccess showComponent={true} />
+          ) : showRenderToast.fail ? (
+            <RenderToastFail
+              showComponent={true}
+              message={
+                invalidInput.emptyFiledsError.length !== 0
+                  ? invalidInput.emptyFiledsError
+                  : invalidInput.re_passwordTypeError.length !== 0
+                  ? invalidInput.re_passwordTypeError
+                  : 'Parola este invalida!'
+              }
+            />
+          ) : null}
+        </>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -325,6 +458,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.backgroundCategories,
   },
   textInputContainer: {
     // flex: 1,
@@ -332,9 +466,9 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     height: 44,
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -350,9 +484,9 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     height: 46,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 7,
@@ -371,7 +505,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: width * 0.6,
     paddingLeft: 10,
-    color: 'rgba(47, 134, 166, 1)',
+    color: colors.backgroundButtonActive,
     fontSize: 16,
     height: 48,
   },
@@ -382,7 +516,7 @@ const styles = StyleSheet.create({
     width: width * 0.6,
     // marginTop: Platform.OS === "android" ? 0 : -12,
     paddingLeft: 10,
-    color: 'rgba(47, 134, 166, 1)',
+    color: colors.backgroundButtonActive,
     fontSize: 18,
     height: 48,
   },
@@ -390,6 +524,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignSelf: 'center',
     justifyContent: 'center',
+  },
+  iconGoBack: {
+    position: 'absolute',
+    top: 10,
+    left: 0,
   },
   registerSection: {
     flex: 1,
@@ -414,8 +553,8 @@ const styles = StyleSheet.create({
     width: width - 40,
     height: 42,
     borderRadius: 16,
-    backgroundColor: 'rgba(47, 134, 166, 1)',
-    shadowColor: '#000000',
+    backgroundColor: colors.backgroundButtonActive,
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -435,7 +574,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     textAlign: 'left',
     fontSize: 14,
-    color: colors.blackGrey,
+    color: colors.textError,
     fontWeight: '700',
   },
   displayColumn: {flexDirection: 'column'},

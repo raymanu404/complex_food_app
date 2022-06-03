@@ -15,6 +15,7 @@ import {
   ToastAndroid,
   Alert,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import colors from '../../../config/colors/colors';
@@ -33,36 +34,36 @@ function Tickets({navigation}) {
   const [userInfo, setUserInfo] = useState({
     balance: 0,
   });
+  useFocusEffect(
+    React.useCallback(() => {
+      const getUserDataFromApi = async () => {
+        try {
+          let headers = {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+          };
+          const response = await api_axios.get(
+            `/buyers/${buyerID || 2}`,
+            headers,
+          );
 
-  useEffect(() => {
-    const getUserDataFromApi = async () => {
-      try {
-        let headers = {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-        };
-        const response = await api_axios.get(
-          `/buyers/${buyerID || 2}`,
-          headers,
-        );
-
-        if (response.status === 200) {
-          setUserInfo({
-            ...userInfo,
-            balance: response.data.balance,
-          });
-          console.log(response.data.balance);
+          if (response.status === 200) {
+            setUserInfo({
+              ...userInfo,
+              balance: response.data.balance,
+            });
+            console.log(response.data.balance);
+          }
+        } catch (error) {
+          console.log(error);
         }
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      };
 
-    getUserDataFromApi();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      getUserDataFromApi();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
   const showToastWithGravity = message => {
     ToastAndroid.showWithGravity(

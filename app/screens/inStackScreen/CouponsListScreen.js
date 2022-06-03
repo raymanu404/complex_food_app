@@ -11,7 +11,9 @@ import api_axios from '../../../config/api/api_axios';
 import colors from '../../../config/colors/colors';
 import Coupon from '../../components/Coupon';
 import RenderEmptyList from '../../components/RenderEmptyList';
+import RenderToastMessage from '../../components/RenderToastMessage';
 import {Icon} from 'react-native-elements';
+import Loading from '../loading';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -20,12 +22,18 @@ function CouponsList({navigation, route}) {
   const buyerID = route.params.buyerID || 2;
   const userMode = route.params.userMode || false;
   const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState({
     filter: 0,
     coupons1: [],
     coupons2: [],
     coupons3: [],
     numberCoupons: 0,
+  });
+
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
   });
 
   useEffect(() => {
@@ -54,12 +62,41 @@ function CouponsList({navigation, route}) {
         console.log(error.response.status);
         setCoupons([]);
       }
+      setLoading(false);
     };
     getCoupons();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const applyCouponForBuyer = async code => {
+  if (loading) {
+    return <Loading />;
+  }
+
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.77}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={'Succes!'}
+        message={'Cuponul de reducere a fost aplicat!'}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.77}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={'Eroare!'}
+        message={'Upps, a aparut o eroare!'}
+      />
+    );
+  };
+
+  const applyCouponForBuyer = code => {
     try {
       var filtered = coupons.filter(function (value, index) {
         return String(value.code) !== String(code);
@@ -67,7 +104,14 @@ function CouponsList({navigation, route}) {
 
       setCoupons(filtered);
       route.params.onGoBack(code);
-      // navigation.goBack();
+      setShowRenderToast({
+        ...showRenderToast,
+        success: true,
+        fail: false,
+      });
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1000);
     } catch (error) {
       console.log(error);
     }
@@ -220,6 +264,11 @@ function CouponsList({navigation, route}) {
       ) : (
         <RenderEmptyList title_message={'Nu aveti cupoane de reducere'} />
       )}
+      {showRenderToast.success ? (
+        <RenderToastSuccess showComponent={true} />
+      ) : showRenderToast.fail ? (
+        <RenderToastFail showComponent={true} />
+      ) : null}
     </View>
   );
 }

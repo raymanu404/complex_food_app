@@ -19,7 +19,7 @@ import CouponsList from './app/screens/inStackScreen/CouponsListScreen';
 import OrdersScreen from './app/screens/inStackScreen/OrdersScreen';
 import OrderItemsScreen from './app/screens/inStackScreen/OrderItemsScreen';
 import CheckoutPayment from './app/screens/inStackScreen/CheckoutPayment';
-import ForgotPassword from './app/screens/inStackScreen/SendEmailScreen';
+import ForgotPassword from './app/screens/inStackScreen/ForgotPasswordScreen';
 import SendEmail from './app/screens/inStackScreen/SendEmailScreen';
 
 //tabs
@@ -45,7 +45,7 @@ export const UserContext = React.createContext();
 export const MenuProductsContext = React.createContext();
 
 function App() {
-  const [userToken, setUserToken] = useState('null');
+  const [userToken, setUserToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // momentan lasam astea default

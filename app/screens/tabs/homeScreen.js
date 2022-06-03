@@ -25,6 +25,7 @@ import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import {MenuProductsContext, UserContext} from '../../../App';
 import api_axios from '../../../config/api/api_axios';
+import Loading from '../loading';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -116,6 +117,7 @@ const categoriesData = [
 
 function Home({navigation}) {
   // const {menuDataInCart, setMenuDataInCart} = useContext(MenuProductsContext);
+  const [loading, setLoading] = useState(true);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerId = userDataLogin.id || 1;
   const [menuData, setMenuData] = useState([]);
@@ -137,6 +139,7 @@ function Home({navigation}) {
       } catch (error) {
         console.log(error.response.status);
       }
+      setLoading(false);
     };
 
     getProducts();
@@ -147,6 +150,10 @@ function Home({navigation}) {
     // };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   const MenuItem = props => (
     <View style={styles.menuContainer}>

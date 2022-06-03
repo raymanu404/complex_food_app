@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 
 import {
   View,
@@ -10,11 +10,14 @@ import {
   TouchableHighlight,
   Dimensions,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
 import api_axios from '../../../config/api/api_axios';
 import colors from '../../../config/colors/colors';
+import RenderEmailImage from '../../components/RenderEmailImage';
+import RenderToastMessage from '../../components/RenderToastMessage';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -32,6 +35,25 @@ function SendEmail({navigation, route}) {
     emailError: false,
     emptyFiledsError: '',
   });
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
+  });
+
+  useEffect(() => {
+    return () => {
+      setUserInfo({
+        ...userInfo,
+        email: '',
+      });
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: false,
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // EMAIL TEXT HANDLER
   const emailTextHandler = val => {
@@ -44,6 +66,7 @@ function SendEmail({navigation, route}) {
       setInvalidInput({
         ...invalidInput,
         emailError: false,
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -55,6 +78,19 @@ function SendEmail({navigation, route}) {
         emailError: true,
       });
     }
+
+    if (String(val).length !== 0) {
+      setInvalidInput({
+        ...invalidInput,
+        emailError: false,
+        emptyFiledsError: '',
+      });
+    }
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
   };
 
   const validateEmail = email => {
@@ -65,13 +101,49 @@ function SendEmail({navigation, route}) {
       );
   };
 
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.72}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={'Succes!'}
+        message={'Emailul a fost trimis cu succes!'}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.72}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={'Eroare!'}
+        message={'Emailul este invalid!'}
+      />
+    );
+  };
+
   const sendEmailHandler = async () => {
     try {
       const verifyValidData = !invalidInput.emailError;
       const emptyFields = userInfo.email !== '';
-      if (verifyValidData && emptyFields) {
+      if (
+        verifyValidData &&
+        emptyFields &&
+        String(userInfo.email).length !== 0 &&
+        validateEmail(userInfo.email)
+      ) {
+        setShowRenderToast({
+          ...showRenderToast,
+          success: false,
+          fail: false,
+        });
+
         setInvalidInput({
           ...invalidInput,
+          emailError: false,
           emptyFiledsError: '',
         });
 
@@ -88,20 +160,42 @@ function SendEmail({navigation, route}) {
           if (
             String(responseSendEmail.data).startsWith('A fost trimis mailul!')
           ) {
-            let getUserId = String(responseSendEmail.data).split('!')[1];
-            navigation.navigate('ConfirmCodeScreen', {
-              idUser: Number(getUserId),
-              forgotPassword: true,
+            setShowRenderToast({
+              ...showRenderToast,
+              success: true,
+              fail: false,
             });
+            setUserInfo({
+              ...userInfo,
+              email: '',
+            });
+            setTimeout(() => {
+              let getUserId = String(responseSendEmail.data).split('!')[1];
+              navigation.navigate('ConfirmCodeScreen', {
+                idUser: Number(getUserId),
+                forgotPassword: true,
+              });
+            }, 1000);
           }
         }
       } else {
+        setShowRenderToast({
+          ...showRenderToast,
+          success: false,
+          fail: true,
+        });
         setInvalidInput({
           ...invalidInput,
+          emailError: true,
           emptyFiledsError: 'Emailul este necompletat/invalid!',
         });
       }
     } catch (error) {
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
       console.log(error.response);
     }
   };
@@ -115,13 +209,11 @@ function SendEmail({navigation, route}) {
         <TouchableOpacity
           style={styles.iconBack}
           onPress={() => navigation.goBack()}>
-          <Icon
-            name={'arrow-left'}
-            type="feather"
-            color={colors.backgroundButtonActive}
-          />
+          <Icon name={'arrow-left'} type="feather" color={colors.black} />
         </TouchableOpacity>
-        <Text style={styles.textInfo}>Introduceti emailul dumneavoastra!</Text>
+        <RenderEmailImage
+          title_message={'Introduceti emailul dumneavoastra!'}
+        />
         <View style={styles.displayColumn}>
           <View
             style={
@@ -152,18 +244,26 @@ function SendEmail({navigation, route}) {
                 setOnFocusInput({...onFocusInput, emailOnFocus: false})
               }
               autoCapitalize="none"
-              placeholder="Email"
-              placeholderTextColor={colors.backgroundButtonActive}
+              placeholder="test@email.com"
+              placeholderTextColor={colors.blackGrey}
             />
           </View>
+          <Text style={styles.textErrorInput}>
+            {invalidInput.emailError ? invalidInput.emptyFiledsError : ''}
+          </Text>
         </View>
-        <TouchableHighlight
-          underlayColor={colors.backgroundApp}
+        <TouchableOpacity
+          activeOpacity={0.95}
           onPress={() => sendEmailHandler()}>
           <View style={styles.button}>
-            <Text style={styles.buttonText}>Trimite </Text>
+            <Text style={styles.buttonText}>Trimite</Text>
           </View>
-        </TouchableHighlight>
+        </TouchableOpacity>
+        {showRenderToast.success ? (
+          <RenderToastSuccess showComponent={true} />
+        ) : showRenderToast.fail ? (
+          <RenderToastFail showComponent={true} />
+        ) : null}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -174,6 +274,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.backgroundCategories,
   },
   textInputContainer: {
     // flex: 1,
@@ -181,9 +282,9 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     height: 44,
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -199,9 +300,9 @@ const styles = StyleSheet.create({
     width: width * 0.9,
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     height: 46,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 7,
@@ -218,9 +319,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     display: 'flex',
     alignSelf: 'center',
-    width: width * 0.6,
+    width: width * 0.8,
     paddingLeft: 10,
-    color: 'rgba(47, 134, 166, 1)',
+    color: colors.backgroundButtonActive,
     fontSize: 16,
     height: 48,
   },
@@ -228,10 +329,10 @@ const styles = StyleSheet.create({
     display: 'flex',
     // textAlignVertical: 'center',
     alignSelf: 'center',
-    width: width * 0.6,
+    width: width * 0.8,
     // marginTop: Platform.OS === "android" ? 0 : -12,
     paddingLeft: 10,
-    color: 'rgba(47, 134, 166, 1)',
+    color: colors.backgroundButtonActive,
     fontSize: 18,
     height: 48,
   },
@@ -245,19 +346,13 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     justifyContent: 'center',
   },
-  registerSection: {
-    flex: 1,
-    // display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: height * 0.02,
-  },
   textSuggest: {
     marginBottom: 10,
     textAlign: 'center',
     fontSize: 16,
     color: colors.backgroundButtonActive,
     fontWeight: '700',
+    letterSpacing: 1,
   },
   button: {
     marginTop: 10,
@@ -268,8 +363,8 @@ const styles = StyleSheet.create({
     width: width - 40,
     height: 42,
     borderRadius: 16,
-    backgroundColor: 'rgba(47, 134, 166, 1)',
-    shadowColor: '#000000',
+    backgroundColor: colors.backgroundButtonActive,
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -288,8 +383,8 @@ const styles = StyleSheet.create({
   textErrorInput: {
     paddingLeft: 10,
     textAlign: 'left',
-    fontSize: 14,
-    color: colors.blackGrey,
+    fontSize: 12,
+    color: colors.textError,
     fontWeight: '700',
   },
   displayColumn: {flexDirection: 'column'},

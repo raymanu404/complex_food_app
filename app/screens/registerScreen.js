@@ -376,14 +376,20 @@ function Register({navigation}) {
           .post('/buyers/register', userDataForRegister)
           .then(response => {
             console.log(response.statusText);
-            if (response.data.email === userInfo.email) {
+            if (response.status === 201) {
               register();
               showToastWithGravity();
               goToLoginScreen();
             }
           })
           .catch(e => {
-            if (e.response.status === 500) {
+            if (e.response.status === 400) {
+              console.log(e.response.data);
+              setInvalidInput({
+                ...invalidInput,
+                emptyFiledsError: 'Campuri invalide pentru inregistrare!',
+              });
+            } else if (e.response.status === 500) {
               setInvalidInput({
                 ...invalidInput,
                 emptyFiledsError: 'Campuri invalide pentru inregistrare!',

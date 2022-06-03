@@ -4,18 +4,13 @@ import {
   StyleSheet,
   Text,
   Dimensions,
-  Image,
   TouchableOpacity,
-  TextInput,
-  Platform,
   TouchableWithoutFeedback,
-  TouchableHighlight,
-  FlatList,
   Alert,
   ToastAndroid,
-  ImageBackground,
   Keyboard,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import {AuthContext} from '../../../config/context';
 import {UserContext} from '../../../App';
 import api_axios from '../../../config/api/api_axios';
@@ -24,12 +19,7 @@ import colors from '../../../config/colors/colors';
 import {Avatar, Icon} from 'react-native-elements';
 import randomColor from 'randomcolor';
 import {ScrollView} from 'react-native-gesture-handler';
-import {
-  Collapse,
-  CollapseHeader,
-  CollapseBody,
-  AccordionList,
-} from 'accordion-collapse-react-native';
+import Loading from '../loading';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -41,32 +31,7 @@ function Profile({navigation}) {
   const {logout} = useContext(AuthContext);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerID = userDataLogin.id;
-  var [dataFromAPI, setDataFromAPI] = useState({});
-
-  useEffect(() => {
-    const getUserDataFromApi = async () => {
-      try {
-        let headers = {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-        };
-        const response = await api_axios.get(
-          `/buyers/${buyerID || 2}`,
-          headers,
-        );
-        setDataFromAPI(response.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    getUserDataFromApi();
-    return () => {
-      setDataFromAPI([]);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [dataFromAPI, setDataFromAPI] = useState({});
 
   const [userData, setUserData] = useState({
     password: String(''),
@@ -92,6 +57,36 @@ function Profile({navigation}) {
   const [textError, setTextError] = useState({
     passwordTextError: '',
   });
+
+  const [loading, setLoading] = useState(true);
+  useFocusEffect(
+    React.useCallback(() => {
+      const getUserDataFromApi = async () => {
+        try {
+          let headers = {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+          };
+          const response = await api_axios.get(
+            `/buyers/${buyerID || 2}`,
+            headers,
+          );
+          setDataFromAPI(response.data);
+        } catch (error) {
+          console.log(error);
+        }
+        setLoading(false);
+      };
+
+      getUserDataFromApi();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
+
+  if (loading) {
+    return <Loading />;
+  }
   const settingsModeHandler = () => {
     // setSettingsMode({
     //   ...settingsMode,
@@ -124,13 +119,13 @@ function Profile({navigation}) {
     });
   };
 
-  const showToastWithGravity = message => {
-    ToastAndroid.showWithGravity(
-      message,
-      ToastAndroid.SHORT,
-      ToastAndroid.CENTER,
-    );
-  };
+  // const showToastWithGravity = message => {
+  //   ToastAndroid.showWithGravity(
+  //     message,
+  //     ToastAndroid.SHORT,
+  //     ToastAndroid.CENTER,
+  //   );
+  // };
 
   const showHideTicketsHandler = () => {
     navigation.navigate('CouponsListScreen', {
@@ -304,9 +299,9 @@ function Profile({navigation}) {
   const changeLastNameValue = childdata => {
     setDataSettings({...dataSettings, lastName: childdata});
   };
-  const changeEmailValue = childdata => {
-    setDataSettings({...dataSettings, email: childdata});
-  };
+  // const changeEmailValue = childdata => {
+  //   setDataSettings({...dataSettings, email: childdata});
+  // };
   const changePhoneValue = childdata => {
     setDataSettings({...dataSettings, phone: childdata});
   };
@@ -398,119 +393,117 @@ function Profile({navigation}) {
         </View>
         {/* ----------------------------HEADER -------------------------- */}
         <View style={styles.header}>
-          {/* ----------------------------EDIT PROFILE ICON-------------------------- */}
-          <View style={styles.editProfile}>
-            <TouchableOpacity
-              onPress={() => settingsModeHandler()}
-              activeOpacity={0.8}>
-              <UserField
-                widthStyle={150}
-                colorBackground={colors.blackGrey}
-                nameIcon={'settings-outline'}
-                typeIcon={'ionicon'}
-                labelField={'Setari'}
-                sizeIcon={16}
-              />
-            </TouchableOpacity>
-          </View>
-          {/* ------------------------------HEADER RIGHT ------------------------ */}
-          <View style={styles.headerRight}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
-              <Text style={styles.text_balance}>
-                SOLD:{' '}
-                {settingsMode.showBalance
-                  ? `${Number(dataFromAPI.balance).toFixed(2)}`
-                  : '****'}{' '}
-                RON
-              </Text>
+          <>
+            {/* ----------------------------EDIT PROFILE ICON-------------------------- */}
+            <View style={styles.editProfile}>
               <TouchableOpacity
-                onPress={() => showHideBalanceHandler()}
-                activeOpacity={0.5}>
-                <Icon
-                  name={settingsMode.showBalance ? 'eye' : 'eye-off'}
-                  type={'feather'}
-                  color={colors.white}
-                  size={24}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.logoutButton}>
-              <TouchableOpacity
-                onPress={() => logoutHandler()}
+                onPress={() => settingsModeHandler()}
                 activeOpacity={0.8}>
                 <UserField
-                  widthStyle={130}
+                  widthStyle={150}
                   colorBackground={colors.blackGrey}
-                  nameIcon={'exit-outline'}
+                  nameIcon={'settings-outline'}
                   typeIcon={'ionicon'}
-                  labelField={'Logout'}
-                  sizeIcon={26}
+                  labelField={'Setari'}
+                  sizeIcon={16}
                 />
               </TouchableOpacity>
             </View>
-          </View>
+            {/* ------------------------------HEADER RIGHT ------------------------ */}
+            <View style={styles.headerRight}>
+              <View style={styles.centerRow}>
+                <Text style={styles.text_balance}>
+                  SOLD:{' '}
+                  {settingsMode.showBalance
+                    ? `${Number(dataFromAPI.balance).toFixed(2)}`
+                    : '****'}{' '}
+                  RON
+                </Text>
+                <TouchableOpacity
+                  onPress={() => showHideBalanceHandler()}
+                  activeOpacity={0.5}>
+                  <Icon
+                    name={settingsMode.showBalance ? 'eye' : 'eye-off'}
+                    type={'feather'}
+                    color={colors.white}
+                    size={24}
+                  />
+                </TouchableOpacity>
+              </View>
 
-          {/* ----------- USER PROFILE --------------------- */}
-          <ScrollView style={styles.userProfile}>
-            <View style={styles.userDataInfo}>
-              <Text style={styles.textLabel}>Date personale</Text>
-              {!settingsMode.showSettingsMode ? (
+              <View style={styles.logoutButton}>
+                <TouchableOpacity
+                  onPress={() => logoutHandler()}
+                  activeOpacity={0.8}>
+                  <UserField
+                    widthStyle={130}
+                    colorBackground={colors.blackGrey}
+                    nameIcon={'exit-outline'}
+                    typeIcon={'ionicon'}
+                    labelField={'Logout'}
+                    sizeIcon={26}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* ----------- USER PROFILE --------------------- */}
+            <ScrollView style={styles.userProfile}>
+              <View style={styles.userDataInfo}>
+                <Text style={styles.textLabel}>Date personale</Text>
                 <>
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.blackGrey}
-                    nameIcon={'user'}
-                    typeIcon={'antdesign'}
-                    labelField={'Nume'}
-                    dataField={
-                      dataFromAPI.firstName + ' ' + dataFromAPI.lastName
-                    }
-                  />
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.blackGrey}
-                    nameIcon={'mail'}
-                    typeIcon={'antdesign'}
-                    labelField={'Email'}
-                    dataField={dataFromAPI.email}
-                  />
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.blackGrey}
-                    nameIcon={'phone'}
-                    typeIcon={'antdesign'}
-                    labelField={'Telefon'}
-                    dataField={dataFromAPI.phoneNumber}
-                  />
-                </>
-              ) : (
-                <>
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.black20}
-                    nameIcon={'user'}
-                    typeIcon={'antdesign'}
-                    labelField={'Prenume'}
-                    dataField={' '}
-                    settingsMode={true}
-                    changeTextInput={changeFirstNameValue}
-                  />
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.black20}
-                    nameIcon={'user'}
-                    typeIcon={'feather'}
-                    labelField={'Nume'}
-                    dataField={' '}
-                    settingsMode={true}
-                    changeTextInput={changeLastNameValue}
-                  />
-                  {/* <UserField
+                  {!settingsMode.showSettingsMode ? (
+                    <>
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.blackGrey}
+                        nameIcon={'user'}
+                        typeIcon={'antdesign'}
+                        labelField={'Nume'}
+                        dataField={
+                          dataFromAPI.firstName + ' ' + dataFromAPI.lastName
+                        }
+                      />
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.blackGrey}
+                        nameIcon={'mail'}
+                        typeIcon={'antdesign'}
+                        labelField={'Email'}
+                        dataField={dataFromAPI.email}
+                      />
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.blackGrey}
+                        nameIcon={'phone'}
+                        typeIcon={'antdesign'}
+                        labelField={'Telefon'}
+                        dataField={dataFromAPI.phoneNumber}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.black20}
+                        nameIcon={'user'}
+                        typeIcon={'antdesign'}
+                        labelField={'Prenume'}
+                        dataField={' '}
+                        settingsMode={true}
+                        changeTextInput={changeFirstNameValue}
+                      />
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.black20}
+                        nameIcon={'user'}
+                        typeIcon={'feather'}
+                        labelField={'Nume'}
+                        dataField={' '}
+                        settingsMode={true}
+                        changeTextInput={changeLastNameValue}
+                      />
+                      {/* <UserField
                     widthStyle={width - 30}
                     colorBackground={colors.black20}
                     nameIcon={'mail'}
@@ -520,135 +513,140 @@ function Profile({navigation}) {
                     settingsMode={true}
                     changeTextInput={changeEmailValue}
                   /> */}
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.black20}
+                        nameIcon={'phone'}
+                        typeIcon={'antdesign'}
+                        labelField={'Telefon'}
+                        dataField={' '}
+                        settingsMode={true}
+                        phoneType={true}
+                        changeTextInput={changePhoneValue}
+                      />
+                    </>
+                  )}
+                </>
+              </View>
+
+              {/* ------------------------- SETTINGS ACCOUNT --------------------------- */}
+              <View style={styles.userDataInfo}>
+                <Text style={styles.textLabel}>Setari Cont</Text>
+                <TouchableOpacity
+                  onPress={() => changePasswordHandler()}
+                  activeOpacity={0.8}>
                   <UserField
                     widthStyle={width - 30}
-                    colorBackground={colors.black20}
-                    nameIcon={'phone'}
-                    typeIcon={'antdesign'}
-                    labelField={'Telefon'}
-                    dataField={' '}
-                    settingsMode={true}
-                    phoneType={true}
-                    changeTextInput={changePhoneValue}
+                    colorBackground={colors.blackGrey}
+                    nameIcon={'lock-open-outline'}
+                    typeIcon={'ionicon'}
+                    labelField={'Schimbare Parola'}
                   />
-                </>
-              )}
-            </View>
+                </TouchableOpacity>
 
-            {/* ------------------------- SETTINGS ACCOUNT --------------------------- */}
-            <View style={styles.userDataInfo}>
-              <Text style={styles.textLabel}>Setari Cont</Text>
-              <TouchableOpacity
-                onPress={() => changePasswordHandler()}
-                activeOpacity={0.8}>
-                <UserField
-                  widthStyle={width - 30}
-                  colorBackground={colors.blackGrey}
-                  nameIcon={'lock-open-outline'}
-                  typeIcon={'ionicon'}
-                  labelField={'Schimbare Parola'}
-                />
-              </TouchableOpacity>
-
-              {settingsMode.showChangePassword ? (
                 <>
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.black20}
-                    nameIcon={'lock-closed-outline'}
-                    typeIcon={'ionicon'}
-                    labelField={'Parola veche'}
-                    dataField={' '}
-                    value={''}
-                    settingsMode={true}
-                    changeTextInput={textInputOldPasswordHandler}
-                    OnBlurMethod={oldPasswordOnBlurMethod}
-                    passwordType={true}
-                    returnKeyTypeBoolean={true}
-                    showEyeForPassword={true}
-                  />
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.black20}
-                    nameIcon={'lock-open-outline'}
-                    typeIcon={'ionicon'}
-                    labelField={'Parola noua'}
-                    dataField={' '}
-                    value={''}
-                    settingsMode={true}
-                    changeTextInput={textInputNewPasswordHandler}
-                    OnBlurMethod={newPasswordOnBlurMethod}
-                    passwordType={true}
-                    returnKeyTypeBoolean={true}
-                    showEyeForPassword={true}
-                  />
-                  <UserField
-                    widthStyle={width - 30}
-                    colorBackground={colors.black20}
-                    nameIcon={'lock-open-outline'}
-                    typeIcon={'ionicon'}
-                    labelField={'Confirmare parola'}
-                    dataField={' '}
-                    value={''}
-                    settingsMode={true}
-                    changeTextInput={textInputR_NewPasswordHandler}
-                    OnBlurMethod={renewPasswordOnBlurMethod}
-                    passwordType={true}
-                    returnKeyTypeBoolean={false}
-                    showEyeForPassword={true}
-                  />
+                  {settingsMode.showChangePassword ? (
+                    <>
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.black20}
+                        nameIcon={'lock-closed-outline'}
+                        typeIcon={'ionicon'}
+                        labelField={'Parola veche'}
+                        dataField={' '}
+                        value={''}
+                        settingsMode={true}
+                        changeTextInput={textInputOldPasswordHandler}
+                        OnBlurMethod={oldPasswordOnBlurMethod}
+                        passwordType={true}
+                        returnKeyTypeBoolean={true}
+                        showEyeForPassword={true}
+                      />
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.black20}
+                        nameIcon={'lock-open-outline'}
+                        typeIcon={'ionicon'}
+                        labelField={'Parola noua'}
+                        dataField={' '}
+                        value={''}
+                        settingsMode={true}
+                        changeTextInput={textInputNewPasswordHandler}
+                        OnBlurMethod={newPasswordOnBlurMethod}
+                        passwordType={true}
+                        returnKeyTypeBoolean={true}
+                        showEyeForPassword={true}
+                      />
+                      <UserField
+                        widthStyle={width - 30}
+                        colorBackground={colors.black20}
+                        nameIcon={'lock-open-outline'}
+                        typeIcon={'ionicon'}
+                        labelField={'Confirmare parola'}
+                        dataField={' '}
+                        value={''}
+                        settingsMode={true}
+                        changeTextInput={textInputR_NewPasswordHandler}
+                        OnBlurMethod={renewPasswordOnBlurMethod}
+                        passwordType={true}
+                        returnKeyTypeBoolean={false}
+                        showEyeForPassword={true}
+                      />
 
-                  <Text style={styles.textError}>
-                    {textError.passwordTextError}
-                  </Text>
+                      <Text style={styles.textError}>
+                        {textError.passwordTextError}
+                      </Text>
+                    </>
+                  ) : null}
                 </>
-              ) : null}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => depunereHandler()}>
+                  <UserField
+                    widthStyle={width - 30}
+                    colorBackground={colors.blackGrey}
+                    nameIcon={'creditcard'}
+                    typeIcon={'antdesign'}
+                    labelField={'Depunere'}
+                  />
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => depunereHandler()}>
-                <UserField
-                  widthStyle={width - 30}
-                  colorBackground={colors.blackGrey}
-                  nameIcon={'creditcard'}
-                  typeIcon={'antdesign'}
-                  labelField={'Depunere'}
-                />
-              </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => showHideTicketsHandler()}>
+                  <UserField
+                    widthStyle={width - 30}
+                    colorBackground={colors.blackGrey}
+                    nameIcon={'ticket-outline'}
+                    typeIcon={'material-community'}
+                    labelField={'Cupoanele mele'}
+                    sizeIcon={26}
+                  />
+                </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => showHideTicketsHandler()}>
-                <UserField
-                  widthStyle={width - 30}
-                  colorBackground={colors.blackGrey}
-                  nameIcon={'ticket-outline'}
-                  typeIcon={'material-community'}
-                  labelField={'Cupoanele mele'}
-                  sizeIcon={26}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {settingsMode.showSaveButton ? (
               <>
-                <View style={styles.settingsModeContainer}>
-                  <TouchableOpacity
-                    onPress={() => saveSettingsHandler()}
-                    activeOpacity={0.8}>
-                    <UserField
-                      widthStyle={150}
-                      colorBackground={colors.blackGrey}
-                      nameIcon={'save-outline'}
-                      typeIcon={'ionicon'}
-                      labelField={'Salveaza'}
-                      sizeIcon={16}
-                    />
-                  </TouchableOpacity>
-                </View>
+                {settingsMode.showSaveButton ? (
+                  <>
+                    <View style={styles.settingsModeContainer}>
+                      <TouchableOpacity
+                        onPress={() => saveSettingsHandler()}
+                        activeOpacity={0.8}>
+                        <UserField
+                          widthStyle={150}
+                          colorBackground={colors.blackGrey}
+                          nameIcon={'save-outline'}
+                          typeIcon={'ionicon'}
+                          labelField={'Salveaza'}
+                          sizeIcon={16}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </>
+                ) : null}
               </>
-            ) : null}
-          </ScrollView>
+            </ScrollView>
+          </>
         </View>
       </View>
     </TouchableWithoutFeedback>
@@ -740,6 +738,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'left',
     fontWeight: '400',
+  },
+  centerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 

@@ -1,6 +1,6 @@
 export default {
   backgroundApp: '#EEEEEE',
-  backgroundButtonActive: 'rgba(47, 134, 166, 1)',
+  backgroundButtonActive: '#2f86a6', //rgba(47,134,166,1)
   recycleBin: '#FF0000',
   textError: 'rgba(255,0,0,0.8)',
   black: '#000000',
@@ -16,4 +16,6 @@ export default {
   statusOrderPlaced: '#FFE3A9',
   statusOrderInProgress: '#C2DED1',
   statusOrderDone: '#14C38E',
+  successToastColor: '#5FD068',
+  failToastColor: '#F24C4C',
 };

@@ -8,18 +8,18 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   FlatList,
-  TouchableHighlight,
-  ToastAndroid,
-  Alert,
 } from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import GestureFlipView from 'react-native-gesture-flip-card';
 import colors from '../../../config/colors/colors';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
 import {Icon} from 'react-native-elements';
 import {UserContext} from '../../../App';
 import RenderEmptyList from '../../components/RenderEmptyList';
+import RenderToastMessage from '../../components/RenderToastMessage';
 import ConfirmedOrder from '../../components/ConfirmedOrder';
 import api_axios from '../../../config/api/api_axios';
+import Loading from '../loading';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -38,51 +38,95 @@ const enum_categories = {
 function Cart({navigation}) {
   // const [menuDataInCart, setMenuDataInCart] = useContext(UserContext);
   const [menuDataInCart, setMenuDataInCart] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerID = userDataLogin.id || 1;
-  const cartID = userDataLogin.cartId;
   const [couponCode, setCouponCode] = useState('default');
   const [totalPrice, setTotalPrice] = useState(0);
   const [confirmCart, setConfirmCart] = useState({
     confirmed: false,
     orderCode: '',
   });
+  const [displayMessage, setDisplayMessage] = useState({
+    successTitle: '',
+    successMessage: '',
+    failTitle: '',
+    failMessage: '',
+  });
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
+  });
 
-  useEffect(() => {
-    const getDataFromCart = async () => {
-      try {
-        let headers = {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-        };
-        const response = await api_axios.get(
-          `/shoppingItems/get_items/${buyerID}`,
-          headers,
-        );
-        const itemsFromApi = response.data;
-        if (response.status === 200) {
-          let sum = 0.0;
-          itemsFromApi.map(element => {
-            sum += element.price * element.cantity;
-          });
+  useFocusEffect(
+    React.useCallback(() => {
+      const getDataFromCart = async () => {
+        try {
+          let headers = {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+          };
+          const response = await api_axios.get(
+            `/shoppingItems/get_items/${buyerID}`,
+            headers,
+          );
+          const itemsFromApi = response.data;
+          if (response.status === 200) {
+            let sum = 0.0;
+            itemsFromApi.map(element => {
+              sum += element.price * element.cantity;
+            });
 
-          setMenuDataInCart(response.data);
-          setConfirmCart({
-            ...confirmCart,
-            confirmed: false,
-          });
-          setTotalPrice(sum.toFixed(2));
+            setMenuDataInCart(response.data);
+            setConfirmCart({
+              ...confirmCart,
+              confirmed: false,
+            });
+            setTotalPrice(sum.toFixed(2));
+          }
+        } catch (error) {
+          console.log(error.response.status);
         }
-      } catch (error) {
-        console.log(error.response.status);
-      }
-    };
+        setLoading(false);
+      };
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: false,
+      });
+      getDataFromCart();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []),
+  );
 
-    getDataFromCart();
+  if (loading) {
+    return <Loading />;
+  }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.8}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.8}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
 
   const removeFromQuantity = props => {
     console.log(props.quantity);
@@ -143,6 +187,17 @@ function Cart({navigation}) {
         let newTotalPrice =
           totalPrice - Number(props.price) * Number(props.quantity);
         setTotalPrice(newTotalPrice);
+        setDisplayMessage({
+          ...displayMessage,
+          successTitle: 'Succes!',
+          successMessage: 'Produsul a fost sters din cos!',
+        });
+
+        setShowRenderToast({
+          ...showRenderToast,
+          success: true,
+          fail: false,
+        });
       }
     } catch (error) {
       console.log(error.response.status);
@@ -203,14 +258,27 @@ function Cart({navigation}) {
               </View>
             </TouchableOpacity>
           </View> */}
-          <Text
-            style={[styles.price_menu, {color: colors.backgroundButtonActive}]}>
-            Cantitate: {props.quantity}
-          </Text>
-          <Text
-            style={[styles.price_menu, {color: colors.backgroundButtonActive}]}>
-            {props.price * props.quantity} RON
-          </Text>
+          <View
+            style={{
+              flexDirection: 'column',
+              justifyContent: 'space-evenly',
+              marginTop: -10,
+            }}>
+            <Text
+              style={[
+                styles.price_menu,
+                {color: colors.backgroundButtonActive},
+              ]}>
+              Cantitate: {props.quantity}
+            </Text>
+            <Text
+              style={[
+                styles.price_menu,
+                {color: colors.backgroundButtonActive},
+              ]}>
+              Sub total produs : {props.price * props.quantity} RON
+            </Text>
+          </View>
           <TouchableOpacity style={styles.icon_trash} activeOpacity={0.6}>
             <Icon
               onPress={() => removeItemFromCart(props)}
@@ -274,18 +342,18 @@ function Cart({navigation}) {
         onGoBack: setCodeCouponHandler,
       });
     } else {
-      Alert.alert(
-        'Comanda minima',
-        'Comanda minima pentru aplicarea cupoanelor este de 12 RON!',
-      );
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Comanda minima!',
+        failMessage: 'Pentru aplicarea cupoanelor suma totala este de 12 RON!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
     }
-  };
-  const showToastWithGravity = message => {
-    ToastAndroid.showWithGravity(
-      message,
-      ToastAndroid.SHORT,
-      ToastAndroid.CENTER,
-    );
   };
 
   const deleteCartHandler = async () => {
@@ -303,12 +371,35 @@ function Cart({navigation}) {
       console.log(response.data);
       const responseMessage = response.data;
       if (String(responseMessage) === 'Success!') {
-        showToastWithGravity('Cosul a fost sters cu succes!');
-        setMenuDataInCart([]);
+        setDisplayMessage({
+          ...displayMessage,
+          successTitle: 'Succes!',
+          successMessage: 'Cosul a fost sters cu succes!',
+        });
+
+        setShowRenderToast({
+          ...showRenderToast,
+          success: true,
+          fail: false,
+        });
+
+        setTimeout(() => {
+          setMenuDataInCart([]);
+        }, 500);
       }
     } catch (error) {
       console.log(error.response.status);
-      showToastWithGravity('Cosul nu a fost gasit!');
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Cos inexistent!',
+        failMessage: 'Cosul nu a fost gasit!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
     }
   };
 
@@ -350,18 +441,42 @@ function Cart({navigation}) {
         const orderCodeFromResponse = response.data;
         if (String(orderCodeFromResponse).startsWith('OrderCode')) {
           const orderCode = String(orderCodeFromResponse).split(':')[1];
-          showToastWithGravity('Comanda a fost plasata!');
-          setMenuDataInCart([]);
+
           setConfirmCart({
             ...confirmCart,
             confirmed: true,
             orderCode: orderCode,
           });
+          setDisplayMessage({
+            ...displayMessage,
+            successTitle: 'Comanda plasata!',
+            successMessage: 'Comanda dumneavoastra a fost plasata!',
+          });
+
+          setShowRenderToast({
+            ...showRenderToast,
+            success: true,
+            fail: false,
+          });
+          setTimeout(() => {
+            setMenuDataInCart([]);
+          }, 1000);
         }
         // navigation.goBack();
       }
     } catch (error) {
       console.log(error.response.status);
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Eroare!',
+        failMessage: 'Eroare la confirmarea cosului!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
     }
   };
   return (
@@ -436,6 +551,23 @@ function Cart({navigation}) {
       ) : (
         <RenderEmptyList title_message={'Cosul este gol!'} />
       )}
+      <>
+        {showRenderToast.success ? (
+          <RenderToastSuccess
+            showComponent={true}
+            title_message={displayMessage.successTitle}
+            message={displayMessage.successMessage}
+          />
+        ) : showRenderToast.fail ? (
+          <RenderToastFail
+            showComponent={true}
+            title_message={displayMessage.failTitle}
+            message={displayMessage.failMessage}
+          />
+        ) : (
+          <View style={styles.emptyDiv}></View>
+        )}
+      </>
     </View>
   );
 }
@@ -464,7 +596,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingBottom: 60,
+    // paddingBottom: 60,
   },
   image_container: {
     marginTop: 20,
@@ -495,7 +627,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   price_menu: {
-    textAlign: 'center',
+    textAlign: 'left',
     fontSize: 17,
     color: colors.white,
     paddingRight: 10,
@@ -598,6 +730,9 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
+  },
+  emptyDiv: {
+    marginBottom: 60,
   },
 });
 

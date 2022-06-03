@@ -18,6 +18,7 @@ import GestureFlipView from 'react-native-gesture-flip-card';
 import {ScrollView, TouchableOpacity} from 'react-native-gesture-handler';
 import RenderEmptyList from '../../components/RenderEmptyList';
 import api_axios from '../../../config/api/api_axios';
+import RenderToastMessage from '../../components/RenderToastMessage';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -27,6 +28,16 @@ function DetailsCategories({navigation, route}) {
   const [dataMenu, setDataMenu] = useState(route.params.menuDataForCategories);
   const [textMessage, setTextMessage] = useState('');
   const data = route.params.menuDataForCategories;
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
+  });
+  const [displayMessage, setDisplayMessage] = useState({
+    successTitle: '',
+    successMessage: '',
+    failTitle: '',
+    failMessage: '',
+  });
 
   const buyerId = () => {
     if (data.length !== 0) {
@@ -36,6 +47,30 @@ function DetailsCategories({navigation, route}) {
   };
   const resultBuyerId = buyerId();
 
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.79}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplicator={0.79}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
   const removeFromQuantity = props => {
     console.log(props.quantity);
     if (props.quantity > 0) {
@@ -43,6 +78,11 @@ function DetailsCategories({navigation, route}) {
       newDataMenu[props.myIndex].quantity = props.quantity - 1;
       setDataMenu(newDataMenu);
     }
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
   };
 
   const addToQuantity = props => {
@@ -53,14 +93,11 @@ function DetailsCategories({navigation, route}) {
       newDataMenu[props.myIndex].quantity = props.quantity + 1;
       setDataMenu(newDataMenu);
     }
-  };
-
-  const showToastWithGravity = message => {
-    ToastAndroid.showWithGravity(
-      message,
-      ToastAndroid.SHORT,
-      ToastAndroid.CENTER,
-    );
+    setShowRenderToast({
+      ...showRenderToast,
+      success: false,
+      fail: false,
+    });
   };
 
   const addToCard = async props => {
@@ -95,16 +132,32 @@ function DetailsCategories({navigation, route}) {
         console.log(response.data);
         if (response.status === 201 || response.status === 200) {
           // route.params.onGoBack(response.data);
-          showToastWithGravity('Produs adaugat in cos!'); //???nu stim de ce nu apar toast-le
-          setTextMessage('Produs adaugat in cos!');
-          refreshFeedbackText();
+          setDisplayMessage({
+            ...displayMessage,
+            successTitle: 'Produs adaugat!',
+            successMessage: 'Produsul a fost adaugat cu succes in cos!',
+          });
+
+          setShowRenderToast({
+            ...showRenderToast,
+            success: true,
+            fail: false,
+          });
         }
       } catch (error) {
         console.log(error.response.status);
         if (error.response.status === 400) {
-          showToastWithGravity('Fonduri insuficiente!');
-          setTextMessage('Fonduri insuficiente!');
-          refreshFeedbackText();
+          setDisplayMessage({
+            ...displayMessage,
+            failTitle: 'Eroare!',
+            failMessage: 'Fonduri insuficiente!',
+          });
+
+          setShowRenderToast({
+            ...showRenderToast,
+            success: false,
+            fail: true,
+          });
         }
       }
     }
@@ -210,11 +263,6 @@ function DetailsCategories({navigation, route}) {
     />
   );
 
-  const refreshFeedbackText = () => {
-    setTimeout(() => {
-      setTextMessage('');
-    }, 1000);
-  };
   return (
     <View style={styles.container}>
       <View style={{position: 'absolute', top: 5, left: 5}}>
@@ -238,14 +286,23 @@ function DetailsCategories({navigation, route}) {
               renderItem={renderMenuItem}
               keyExtractor={item => item.key}
             />
-            <Animatable.Text
-              style={styles.feedbackMessage}
-              animation={'pulse'}
-              duration={800}>
-              {textMessage}
-            </Animatable.Text>
           </>
         )}
+        <>
+          {showRenderToast.success ? (
+            <RenderToastSuccess
+              showComponent={true}
+              title_message={displayMessage.successTitle}
+              message={displayMessage.successMessage}
+            />
+          ) : showRenderToast.fail ? (
+            <RenderToastFail
+              showComponent={true}
+              title_message={displayMessage.failTitle}
+              message={displayMessage.failMessage}
+            />
+          ) : null}
+        </>
       </View>
     </View>
   );

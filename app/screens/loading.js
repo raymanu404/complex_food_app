@@ -1,10 +1,15 @@
 import React from 'react';
-import {View, StyleSheet, Text} from 'react-native';
+import {View, StyleSheet, ActivityIndicator} from 'react-native';
+import colors from '../../config/colors/colors';
 
 function Loading() {
   return (
     <View style={styles.container}>
-      <Text>Loading Screen</Text>
+      <ActivityIndicator
+        size="large"
+        color={colors.backgroundButtonActive}
+        style={{marginTop: 10}}
+      />
     </View>
   );
 }
