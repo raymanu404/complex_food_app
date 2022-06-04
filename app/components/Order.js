@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {memo} from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ function Order(props) {
         return colors.statusOrderPlaced;
     }
   };
+
   const getStatusOrder = () => {
     switch (props.status) {
       case 1:
@@ -60,6 +61,9 @@ function Order(props) {
       {/* ---------------------------- HEADER-------------------- */}
       <View style={styles.header}>
         <Text style={styles.text_order}>{getDateFormat()}</Text>
+        <Text style={styles.text_order}>
+          Discount comanda aplicata: {props.discount} % Reducere
+        </Text>
       </View>
       <View
         style={[styles.orderContainer, {backgroundColor: getStatusColor()}]}>
@@ -182,4 +186,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Order;
+export default memo(Order);

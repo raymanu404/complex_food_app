@@ -17,7 +17,6 @@ import api_axios from '../../../config/api/api_axios';
 import UserField from '../../components/UserField';
 import colors from '../../../config/colors/colors';
 import {Avatar, Icon} from 'react-native-elements';
-import randomColor from 'randomcolor';
 import {ScrollView} from 'react-native-gesture-handler';
 import Loading from '../loading';
 

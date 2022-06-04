@@ -38,8 +38,6 @@ function ForgotPassword({navigation, route}) {
   });
   const passwordRef = useRef(null);
   const re_passwordRef = useRef(null);
-
-  const [textError, setTextError] = useState('');
   const [userInfo, setUserInfo] = useState({
     password: '',
     re_password: '',

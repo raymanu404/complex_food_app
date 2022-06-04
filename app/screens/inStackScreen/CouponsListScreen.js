@@ -96,14 +96,14 @@ function CouponsList({navigation, route}) {
     );
   };
 
-  const applyCouponForBuyer = code => {
+  const applyCouponForBuyer = (code, typeOfCoupon) => {
     try {
       var filtered = coupons.filter(function (value, index) {
         return String(value.code) !== String(code);
       });
 
       setCoupons(filtered);
-      route.params.onGoBack(code);
+      route.params.onGoBack(code, typeOfCoupon);
       setShowRenderToast({
         ...showRenderToast,
         success: true,
@@ -122,7 +122,7 @@ function CouponsList({navigation, route}) {
       type={item.type}
       dateCreated={item.dateCreated}
       code={item.code}
-      applyCoupon={() => applyCouponForBuyer(item.code)}
+      applyCoupon={() => applyCouponForBuyer(item.code, item.type)}
       userMode={userMode}
     />
   );

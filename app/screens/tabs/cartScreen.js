@@ -24,25 +24,16 @@ import Loading from '../loading';
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = width - 50;
-
-const enum_categories = {
-  SOUP: 'soup',
-  MEAT: 'meat',
-  GARNISH: 'garnish',
-  DESERT: 'desert',
-  SALAD: 'salad',
-  DRINK: 'drink',
-  STANDARD: 'standard',
-};
+const PRICE_OF_COUPON = 10;
 
 function Cart({navigation}) {
-  // const [menuDataInCart, setMenuDataInCart] = useContext(UserContext);
   const [menuDataInCart, setMenuDataInCart] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerID = userDataLogin.id || 1;
   const [couponCode, setCouponCode] = useState('default');
   const [totalPrice, setTotalPrice] = useState(0);
+  const [originalTotalPrice, setOriginalTotalPrice] = useState(0);
   const [confirmCart, setConfirmCart] = useState({
     confirmed: false,
     orderCode: '',
@@ -84,6 +75,7 @@ function Cart({navigation}) {
               confirmed: false,
             });
             setTotalPrice(sum.toFixed(2));
+            setOriginalTotalPrice(sum.toFixed(2));
           }
         } catch (error) {
           console.log(error.response.status);
@@ -95,7 +87,14 @@ function Cart({navigation}) {
         success: false,
         fail: false,
       });
-      getDataFromCart();
+      console.log(String(couponCode));
+      if (
+        String(couponCode) === 'default' ||
+        String(couponCode) === 'ordered'
+      ) {
+        getDataFromCart();
+      }
+
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
@@ -184,6 +183,10 @@ function Cart({navigation}) {
         setMenuDataInCart(myNewMenu =>
           myNewMenu.filter(el => el.id !== props.myKey),
         );
+
+        if (menuDataInCart.length === 0) {
+          setCouponCode('default');
+        }
         let newTotalPrice =
           totalPrice - Number(props.price) * Number(props.quantity);
         setTotalPrice(newTotalPrice);
@@ -332,7 +335,27 @@ function Cart({navigation}) {
     />
   );
 
-  const setCodeCouponHandler = code => {
+  const setCodeCouponHandler = (code, typeOfDiscount) => {
+    console.log(typeOfDiscount);
+    let discount = 1;
+    let newTotalPriceWithDiscount = 0;
+    switch (Number(typeOfDiscount)) {
+      case 1:
+        discount = 10;
+        break;
+      case 2:
+        discount = 20;
+        break;
+      case 3:
+        discount = 30;
+        break;
+      default:
+        discount = 10;
+        break;
+    }
+    newTotalPriceWithDiscount =
+      totalPrice - (originalTotalPrice * discount) / 100 - PRICE_OF_COUPON;
+    setTotalPrice(newTotalPriceWithDiscount);
     setCouponCode(code);
   };
   const applyUserCouponHandler = () => {
@@ -376,7 +399,7 @@ function Cart({navigation}) {
           successTitle: 'Succes!',
           successMessage: 'Cosul a fost sters cu succes!',
         });
-
+        setCouponCode('default');
         setShowRenderToast({
           ...showRenderToast,
           success: true,
@@ -460,6 +483,7 @@ function Cart({navigation}) {
           });
           setTimeout(() => {
             setMenuDataInCart([]);
+            setCouponCode('ordered');
           }, 1000);
         }
         // navigation.goBack();

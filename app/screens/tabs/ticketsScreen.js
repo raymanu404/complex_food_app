@@ -16,12 +16,11 @@ import {
   Alert,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import {Icon} from 'react-native-elements';
-import * as Animatable from 'react-native-animatable';
 import colors from '../../../config/colors/colors';
 import Ticket from '../../components/Ticket';
 import {UserContext} from '../../../App';
 import api_axios from '../../../config/api/api_axios';
+import RenderToastMessage from '../../components/RenderToastMessage';
 
 const height = Dimensions.get('screen').height;
 const width = Dimensions.get('screen').width;
@@ -30,10 +29,21 @@ const menu_container_width = width - 50;
 function Tickets({navigation}) {
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerID = userDataLogin.id;
+  const [displayMessage, setDisplayMessage] = useState({
+    successTitle: '',
+    successMessage: '',
+    failTitle: '',
+    failMessage: '',
+  });
+  const [showRenderToast, setShowRenderToast] = useState({
+    success: false,
+    fail: false,
+  });
 
   const [userInfo, setUserInfo] = useState({
     balance: 0,
   });
+
   useFocusEffect(
     React.useCallback(() => {
       const getUserDataFromApi = async () => {
@@ -59,7 +69,11 @@ function Tickets({navigation}) {
           console.log(error);
         }
       };
-
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: false,
+      });
       getUserDataFromApi();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
@@ -73,15 +87,41 @@ function Tickets({navigation}) {
     );
   };
 
+  const RenderToastSuccess = props => {
+    return (
+      <RenderToastMessage
+        multiplier={0.88}
+        showComponent={props.showComponent}
+        status={'success'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
+  const RenderToastFail = props => {
+    return (
+      <RenderToastMessage
+        multiplier={0.88}
+        showComponent={props.showComponent}
+        status={'fail'}
+        title_message={props.title_message}
+        message={props.message}
+      />
+    );
+  };
+
   const paymentHandler = (amount, type) => {
     try {
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: false,
+      });
       let headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-      };
-      const data = {
-        type: type,
       };
 
       const total_price =
@@ -100,42 +140,62 @@ function Tickets({navigation}) {
             {
               text: 'DA',
               onPress: async () => {
+                const data = {
+                  type: type,
+                };
+
                 const response = await api_axios.post(
                   `/coupons/buy_coupons/${buyerID}`,
                   data,
                   headers,
                 );
-                console.log(response.data);
-                if (
-                  response.data !== 'Insufficient funds!' &&
-                  response.data !== 'Error in Create Coupons'
-                ) {
-                  if (response.status === 201) {
-                    showToastWithGravity(
-                      'Tranzactia a fost facuta cu succes!\n Va multumim!',
-                    );
-                    setUserInfo({
-                      ...userInfo,
-                      balance: String(response.data),
-                    });
-                    // setUserDataLogin({
-                    //   ...userDataLogin,
-                    //   balance: String(response.data),
-                    // });
-                    // navigation.navigate('HomeScreen');
-                  }
-                } else {
-                  showToastWithGravity('Fonduri insuficiente!!!');
+
+                if (response.status === 201) {
+                  setDisplayMessage({
+                    ...displayMessage,
+                    successTitle: 'Tranzactie reusita!',
+                    successMessage: 'Tranzactia a fost realizata cu succes!',
+                  });
+
+                  setShowRenderToast({
+                    ...showRenderToast,
+                    success: true,
+                    fail: false,
+                  });
+                  setUserInfo({
+                    ...userInfo,
+                    balance: String(response.data),
+                  });
                 }
               },
             },
           ],
         );
       } else {
-        showToastWithGravity('Fonduri insuficiente!!!');
+        setDisplayMessage({
+          ...displayMessage,
+          failTitle: 'Eroare!',
+          failMessage: 'Fonduri insuficiente pentru aceasta tranzactie!',
+        });
+
+        setShowRenderToast({
+          ...showRenderToast,
+          success: false,
+          fail: true,
+        });
       }
     } catch (error) {
-      console.log(error.response.status);
+      setDisplayMessage({
+        ...displayMessage,
+        failTitle: 'Eroare!',
+        failMessage: 'Eroare in cumpararea cupoanelor!',
+      });
+
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: true,
+      });
     }
   };
 
@@ -176,6 +236,23 @@ function Tickets({navigation}) {
             type={3}
           />
         </ScrollView>
+        <>
+          {showRenderToast.success ? (
+            <RenderToastSuccess
+              showComponent={true}
+              title_message={displayMessage.successTitle}
+              message={displayMessage.successMessage}
+            />
+          ) : showRenderToast.fail ? (
+            <RenderToastFail
+              showComponent={true}
+              title_message={displayMessage.failTitle}
+              message={displayMessage.failMessage}
+            />
+          ) : (
+            <View style={styles.emptyDiv}></View>
+          )}
+        </>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -288,6 +365,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.black,
+  },
+  emptyDiv: {
+    marginBottom: 60,
   },
 });
 export default Tickets;

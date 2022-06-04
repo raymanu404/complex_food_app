@@ -28,6 +28,8 @@ target 'complex_food_v1' do
 
   pod 'stripe-react-native', :path => '../node_modules/@stripe/stripe-react-native'
 
+  pod 'RNCCheckbox', :path => '../node_modules/@react-native-community/checkbox'
+
   target 'complex_food_v1Tests' do
     inherit! :complete
     # Pods for testing

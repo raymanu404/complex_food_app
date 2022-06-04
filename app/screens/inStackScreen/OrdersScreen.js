@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useRef, useMemo} from 'react';
 import {
   View,
   StyleSheet,
@@ -6,7 +6,6 @@ import {
   Dimensions,
   FlatList,
   TouchableOpacity,
-  Pressable,
   Modal,
   Switch,
 } from 'react-native';
@@ -17,6 +16,7 @@ import RenderEmptyList from '../../components/RenderEmptyList';
 import Order from '../../components/Order';
 import Loading from '../loading';
 import colors from '../../../config/colors/colors';
+import {RadioButton} from 'react-native-paper';
 
 const windowheight = Dimensions.get('window').height;
 const width = Dimensions.get('screen').width;
@@ -28,11 +28,18 @@ function OrdersScreen({navigation, route}) {
   const [isSwitchEnabled, setIsSwitchEnabled] = useState({
     history: false,
     placed: false,
-    widthDiscount: false,
+    withDiscount: false,
+    withDiscount10: false,
+    withDiscount20: false,
+    withDiscount30: false,
     allOrders: false,
   });
-  const [filterOrders, setFilterOrders] = useState([]);
 
+  const [sorting, setSorting] = useState({
+    typeOfSorting: 'Desc',
+  });
+
+  const [filterOrders, setFilterOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -85,6 +92,31 @@ function OrdersScreen({navigation, route}) {
     />
   );
 
+  // ------------ update list of orders by sorting ---------------
+  const updateFilteredOrdersByTypeOfSorting = (typeOfSort, myFilteredList) => {
+    switch (typeOfSort) {
+      case 'Asc':
+        let sortOrderAsc = Array.from(myFilteredList).sort(function (a, b) {
+          return new Date(a.datePlaced) - new Date(b.datePlaced);
+        });
+        setFilterOrders(sortOrderAsc);
+        break;
+      case 'Desc':
+        let sortOrderDesc = Array.from(myFilteredList).sort(function (a, b) {
+          return new Date(b.datePlaced) - new Date(a.datePlaced);
+        });
+        setFilterOrders(sortOrderDesc);
+        break;
+      default:
+        let sortOrderDesc1 = Array.from(myFilteredList).sort(function (a, b) {
+          return new Date(b.datePlaced) - new Date(a.datePlaced);
+        });
+        setFilterOrders(sortOrderDesc1);
+        break;
+    }
+  };
+
+  // ---------------------------------- TOGGLES -----------------------------------------
   //list of orders with orderStatus : done
   const toggleSwitchHistory = () => {
     setIsSwitchEnabled({
@@ -97,7 +129,10 @@ function OrdersScreen({navigation, route}) {
       let filterOrdersByOrderStatusDone = Array.from(orders).filter(
         x => x.status === 3,
       );
-      setFilterOrders(filterOrdersByOrderStatusDone);
+      updateFilteredOrdersByTypeOfSorting(
+        sorting.typeOfSorting,
+        filterOrdersByOrderStatusDone,
+      );
     }
   };
 
@@ -106,6 +141,11 @@ function OrdersScreen({navigation, route}) {
     setIsSwitchEnabled({
       ...isSwitchEnabled,
       placed: !isSwitchEnabled.placed,
+      history: false,
+      withDiscount: false,
+      withDiscount10: false,
+      withDiscount20: false,
+      withDiscount30: false,
       allOrders: false,
     });
 
@@ -113,7 +153,10 @@ function OrdersScreen({navigation, route}) {
       let filterOrdersByOrderStatusPlaced = Array.from(orders).filter(
         x => x.status === 1,
       );
-      setFilterOrders(filterOrdersByOrderStatusPlaced);
+      updateFilteredOrdersByTypeOfSorting(
+        sorting.typeOfSorting,
+        filterOrdersByOrderStatusPlaced,
+      );
     }
   };
 
@@ -121,15 +164,97 @@ function OrdersScreen({navigation, route}) {
   const toggleSwitchDiscount = () => {
     setIsSwitchEnabled({
       ...isSwitchEnabled,
-      widthDiscount: !isSwitchEnabled.widthDiscount,
+      withDiscount: !isSwitchEnabled.withDiscount,
+      history: false,
+      placed: false,
+      withDiscount10: false,
+      withDiscount20: false,
+      withDiscount30: false,
       allOrders: false,
     });
 
-    if (!isSwitchEnabled.widthDiscount) {
+    if (!isSwitchEnabled.withDiscount) {
       let filterOrdersByDiscount = Array.from(orders).filter(
         x => x.discount !== 0,
       );
-      setFilterOrders(filterOrdersByDiscount);
+      updateFilteredOrdersByTypeOfSorting(
+        sorting.typeOfSorting,
+        filterOrdersByDiscount,
+      );
+    }
+  };
+
+  //list of orders with 10 discount
+  const toggleCheckBox10Discount = () => {
+    setIsSwitchEnabled({
+      ...isSwitchEnabled,
+      withDiscount10: !isSwitchEnabled.withDiscount10,
+      history: false,
+      placed: false,
+      withDiscount: false,
+      withDiscount20: false,
+      withDiscount30: false,
+      allOrders: false,
+    });
+
+    if (!isSwitchEnabled.withDiscount10) {
+      let filterOrdersBy10Discount = Array.from(orders).filter(
+        x => x.discount === 10,
+      );
+      updateFilteredOrdersByTypeOfSorting(
+        sorting.typeOfSorting,
+        filterOrdersBy10Discount,
+      );
+    }
+  };
+
+  //list of orders with 20 discount
+  const toggleCheckBox20Discount = () => {
+    setIsSwitchEnabled({
+      ...isSwitchEnabled,
+      withDiscount20: !isSwitchEnabled.withDiscount20,
+      history: false,
+      placed: false,
+      withDiscount10: false,
+      withDiscount: false,
+      withDiscount30: false,
+      allOrders: false,
+    });
+
+    if (!isSwitchEnabled.withDiscount20) {
+      let filterOrdersBy20Discount = Array.from(orders).filter(
+        x => x.discount === 20,
+      );
+
+      updateFilteredOrdersByTypeOfSorting(
+        sorting.typeOfSorting,
+        filterOrdersBy20Discount,
+      );
+    }
+  };
+
+  //list of orders with 30 discount
+  const toggleCheckBox30Discount = () => {
+    setIsSwitchEnabled({
+      ...isSwitchEnabled,
+      withDiscount30: !isSwitchEnabled.withDiscount30,
+      history: false,
+      placed: false,
+      withDiscount10: false,
+      withDiscount20: false,
+      withDiscount: false,
+      allOrders: false,
+    });
+
+    if (!isSwitchEnabled.withDiscount30) {
+      let filterOrdersBy30Discount = Array.from(orders).filter(
+        x => x.discount === 30,
+      );
+
+      updateFilteredOrdersByTypeOfSorting(
+        sorting.typeOfSorting,
+        filterOrdersBy30Discount,
+      );
     }
   };
 
@@ -139,10 +264,22 @@ function OrdersScreen({navigation, route}) {
       ...isSwitchEnabled,
       history: false,
       placed: false,
-      widthDiscount: false,
+      withDiscount: false,
+      withDiscount10: false,
+      withDiscount20: false,
+      withDiscount30: false,
       allOrders: !isSwitchEnabled.allOrders,
     });
-    setFilterOrders(orders);
+    updateFilteredOrdersByTypeOfSorting(sorting.typeOfSorting, orders);
+  };
+
+  // -----------sort handler
+  const sortHandler = val => {
+    updateFilteredOrdersByTypeOfSorting(val, filterOrders);
+    setSorting({
+      ...sorting,
+      typeOfSorting: val,
+    });
   };
 
   return (
@@ -197,6 +334,7 @@ function OrdersScreen({navigation, route}) {
               </TouchableOpacity>
             </View>
             <Text style={styles.textModalTitle}>Filtre</Text>
+
             {/* Modal Container Filters */}
             <View style={styles.modalInsideContainer}>
               <View style={styles.flexDirectionRow}>
@@ -227,10 +365,43 @@ function OrdersScreen({navigation, route}) {
                   trackColor={{false: '#767577', true: '#81b0ff'}}
                   thumbColor={'#f4f3f4'}
                   onValueChange={toggleSwitchDiscount}
-                  value={isSwitchEnabled.widthDiscount}
+                  value={isSwitchEnabled.withDiscount}
                 />
               </View>
               <View style={styles.flexDirectionRow}>
+                <Text style={styles.textModalFilterItem}>
+                  Comenzi cu 10 % Reducere
+                </Text>
+                <Switch
+                  trackColor={{false: '#767577', true: '#81b0ff'}}
+                  thumbColor={'#f4f3f4'}
+                  onValueChange={toggleCheckBox10Discount}
+                  value={isSwitchEnabled.withDiscount10}
+                />
+              </View>
+              <View style={styles.flexDirectionRow}>
+                <Text style={styles.textModalFilterItem}>
+                  Comenzi cu 20 % Reducere
+                </Text>
+                <Switch
+                  trackColor={{false: '#767577', true: '#81b0ff'}}
+                  thumbColor={'#f4f3f4'}
+                  onValueChange={toggleCheckBox20Discount}
+                  value={isSwitchEnabled.withDiscount20}
+                />
+              </View>
+              <View style={styles.flexDirectionRow}>
+                <Text style={styles.textModalFilterItem}>
+                  Comenzi cu 30 % Reducere
+                </Text>
+                <Switch
+                  trackColor={{false: '#767577', true: '#81b0ff'}}
+                  thumbColor={'#f4f3f4'}
+                  onValueChange={toggleCheckBox30Discount}
+                  value={isSwitchEnabled.withDiscount30}
+                />
+              </View>
+              <View style={[styles.flexDirectionRow, {marginBottom: 10}]}>
                 <Text style={styles.textModalFilterItem}>Toate comenzile</Text>
                 <Switch
                   trackColor={{false: '#767577', true: '#81b0ff'}}
@@ -239,9 +410,38 @@ function OrdersScreen({navigation, route}) {
                   value={isSwitchEnabled.allOrders}
                 />
               </View>
+
+              <Text style={styles.textModalTitle}>Sortari</Text>
+
+              {/* ------------------ SORTING ----------------- */}
+              <View style={styles.modalInsideContainer}>
+                <View style={styles.flexDirectionRow}>
+                  <RadioButton.Group
+                    onValueChange={newValue => sortHandler(newValue)}
+                    value={sorting.typeOfSorting}>
+                    {/* <View style={styles.genderContainer}> */}
+                    <View style={styles.genderItem}>
+                      <Text style={styles.genderTextItem}>
+                        Sorteaza dupa cele mai recente
+                      </Text>
+                      <RadioButton value="Desc" color={'#f4f3f4'} />
+                    </View>
+                    <View style={styles.genderItem}>
+                      <Text style={styles.genderTextItem}>
+                        Sorteaza dupa cele mai vechi
+                      </Text>
+                      <RadioButton value="Asc" color={'#f4f3f4'} />
+                    </View>
+                    {/* </View> */}
+                  </RadioButton.Group>
+                </View>
+              </View>
             </View>
+            {/* END OF FILTERS */}
           </View>
+          {/* END OF MODAL VIEW */}
         </View>
+        {/* END OF CENTERVIEW */}
       </Modal>
 
       {/* ----------------------------LIST OF ORDERS -------------------------- */}
@@ -349,9 +549,9 @@ const styles = StyleSheet.create({
   },
   modalInsideContainer: {
     flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginLeft: -width * 0.3,
+    // justifyContent: 'flex-start',
+    // alignItems: 'center',
+    // marginLeft: -width * 0.1,
   },
   textModalTitle: {
     fontSize: 26,
@@ -359,6 +559,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     letterSpacing: 2,
+    marginBottom: 2,
   },
   textModalFilterItem: {
     fontSize: 18,
@@ -369,7 +570,36 @@ const styles = StyleSheet.create({
   },
   flexDirectionRow: {
     flexDirection: 'row',
-    marginTop: 40,
+    marginTop: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  genderContainerParent: {
+    flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    marginLeft: 2,
+  },
+  genderContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    // paddingRight: 2,
+    // marginLeft: 5,
+  },
+  genderItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    // alignItems: 'center',
+    // marginLeft: 5,
+    // marginTop: 3,
+  },
+  genderTextItem: {
+    fontSize: 18,
+    paddingTop: 6,
+    paddingRight: 2,
+    color: colors.white,
+    fontWeight: '600',
   },
 });
 export default OrdersScreen;

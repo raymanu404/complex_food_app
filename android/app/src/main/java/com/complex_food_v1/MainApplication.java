@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.checkbox.ReactCheckBoxPackage;
 import com.reactnativestripesdk.StripeSdkPackage;
 import com.reactnativegooglesignin.RNGoogleSigninPackage;
 import com.reactnativegooglesignin.RNGoogleSigninPackage;
@@ -38,7 +39,8 @@ public class MainApplication extends Application implements ReactApplication {
           List<ReactPackage> packages = new PackageList(this).getPackages();
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
-          // packages.add(new MainReactPackage());
+          // packages.add(new MainReactPackage(),
+            new ReactCheckBoxPackage());
           // packages.add(new StripeSdkPackage());
             
           return packages;
