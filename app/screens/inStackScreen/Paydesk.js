@@ -25,6 +25,7 @@ import {
 } from '@stripe/stripe-react-native';
 import api_axios from '../../../config/api/api_axios';
 import RenderToastMessage from '../../components/RenderToastMessage';
+import CountryPicker from 'react-native-country-picker-modal';
 
 const width = Dimensions.get('screen').width;
 if (Platform.OS === 'android') {
@@ -64,11 +65,13 @@ function PayDesk({navigation, route}) {
   const [userInfoBilling, setUserInfoBilling] = useState({
     amount: 0,
     city: '',
-    country: '',
+    country: 'Romania',
+    countryCode: 'RO',
     address: '',
     validDataCard: false,
     completeCart: false,
   });
+  const [visibilityCountryPicker, setVisibilityCountryPicker] = useState(false);
 
   useEffect(() => {
     const getPublishableKey = async () => {
@@ -82,6 +85,7 @@ function PayDesk({navigation, route}) {
           '/payment/publishableKey',
           headers,
         );
+
         if (response.status === 200) {
           setPublishableKey(response.data);
         }
@@ -107,7 +111,7 @@ function PayDesk({navigation, route}) {
         phone: phoneNumber,
         amount: userInfoBilling.amount,
       };
-
+      console.log(dataToSend);
       const reponseCreatePaymentIntent = await api_axios.post(
         '/payment/create-payment-intent',
         dataToSend,
@@ -208,16 +212,6 @@ function PayDesk({navigation, route}) {
       });
       return;
     }
-    // let userinfo = {
-    //   email: userInfoBilling.email,
-    //   firstName: userInfoBilling.firstName,
-    //   lastName: userInfoBilling.lastName,
-    //   amount: userInfoBilling.amount,
-    //   city: userInfoBilling.city,
-    //   country: userInfoBilling.country,
-    //   address: userInfoBilling.address,
-    // };
-    // navigation.navigate('CheckoutPaymentScreen', userinfo);
   };
 
   const amountTextHandler = val => {
@@ -252,6 +246,7 @@ function PayDesk({navigation, route}) {
       address: val,
     });
   };
+
   const changeCityHandler = val => {
     setShowRenderToast({
       ...showRenderToast,
@@ -263,21 +258,27 @@ function PayDesk({navigation, route}) {
       city: val,
     });
   };
-  const changeCountryHandler = val => {
+
+  const changePostalCodeHandler = val => {
     setShowRenderToast({
       ...showRenderToast,
       success: false,
       fail: false,
     });
-    setUserInfoBilling({
-      ...userInfoBilling,
-      country: val,
-    });
+    // setUserInfoBilling({
+    //   ...userInfoBilling,
+    //   : val,
+    // });
   };
 
   const initializePaymentSheet = async () => {
     try {
-      checkUserDataFromForm();
+      setShowRenderToast({
+        ...showRenderToast,
+        success: false,
+        fail: false,
+      });
+      // checkUserDataFromForm();
       fetchPayementIntentClientSecret();
       if (!clientSecret) {
         return;
@@ -317,7 +318,8 @@ function PayDesk({navigation, route}) {
   const confirmPaymentFunction = async () => {
     try {
       checkUserDataFromForm();
-      fetchPayementIntentClientSecret();
+      console.log(clientSecret);
+      // fetchPayementIntentClientSecret();
       if (!clientSecret) {
         return;
       }
@@ -398,8 +400,8 @@ function PayDesk({navigation, route}) {
 
         setShowRenderToast({
           ...showRenderToast,
-          success: true,
-          fail: false,
+          success: false,
+          fail: true,
         });
       }
     } catch (error) {
@@ -408,19 +410,20 @@ function PayDesk({navigation, route}) {
   };
 
   const amountOnBlurHandler = flag => {
-    if (countOnBlurAmount === 0) {
-      if (flag) {
-        setCountOnBlurAmount(countOnBlurAmount + 1);
-        console.log(`on blur amount : ${countOnBlurAmount}`);
-        // initializePaymentSheet();
-      }
-    }
-  };
-
-  const countryOnBlurHandler = flag => {
-    if (flag) {
-      // ref2.current.focus();
-    }
+    // console.log(`amount on blur : ${flag}`);
+    // if (countOnBlurAmount === 0) {
+    //   if (flag) {
+    //     setCountOnBlurAmount(countOnBlurAmount + 1);
+    //     console.log(
+    //       `on blur amount : ${countOnBlurAmount} and amount : ${userInfoBilling.amount}`,
+    //     );
+    //     if (userInfoBilling.amount > 0) {
+    //       initializePaymentSheet();
+    //     } else {
+    //       setCountOnBlurAmount(0);
+    //     }
+    //   }
+    // }
   };
 
   const cityOnBlurHandler = flag => {
@@ -434,6 +437,19 @@ function PayDesk({navigation, route}) {
     }
   };
 
+  const onSelectCountry = country => {
+    console.log(country);
+    setUserInfoBilling({
+      ...userInfoBilling,
+      country: country.name,
+      countryCode: country.cca2,
+    });
+  };
+
+  const changeVisibilityCountryHandler = () => {
+    setVisibilityCountryPicker(!visibilityCountryPicker);
+  };
+
   return (
     <StripeProvider
       publishableKey={publishableKey}
@@ -443,19 +459,35 @@ function PayDesk({navigation, route}) {
           Keyboard.dismiss();
         }}>
         <View style={styles.userInputContainer}>
-          <UserField
+          <TouchableOpacity
+            activeOpacity={0.97}
+            onPress={changeVisibilityCountryHandler}>
+            <UserField
+              widthStyle={width - 30}
+              colorBackground={colors.backgroundBottomTabInactive}
+              // nameIcon={'flag'}
+              // typeIcon={'feather'}
+              labelField={'Tara'}
+              dataField={' '}
+              settingsMode={true}
+              countryMode={true}
+              visibilityCountryPicker={visibilityCountryPicker}
+              onSelectCountry={onSelectCountry}
+              countryCode={userInfoBilling.countryCode}
+            />
+          </TouchableOpacity>
+          {/* <UserField
             widthStyle={width - 30}
             colorBackground={colors.backgroundBottomTabInactive}
-            nameIcon={'information-circle-outline'}
-            typeIcon={'ionicon'}
-            labelField={'Tara'}
+            nameIcon={'home'}
+            typeIcon={'antdesign'}
+            labelField={'Judet'}
             dataField={' '}
-            value={userInfoBilling.country}
+            value={userInfoBilling.address}
             settingsMode={true}
-            changeTextInput={changeCountryHandler}
-            OnBlurMethod={countryOnBlurHandler}
-            returnKeyTypeBoolean={true}
-          />
+            changeTextInput={changeAddressHandler}
+          /> */}
+
           <UserField
             widthStyle={width - 30}
             colorBackground={colors.backgroundBottomTabInactive}
@@ -482,25 +514,14 @@ function PayDesk({navigation, route}) {
             OnBlurMethod={addressOnBlurHandler}
             returnKeyTypeBoolean={true}
           />
-          {/* <UserField
-          widthStyle={width - 30}
-          colorBackground={colors.backgroundBottomTabInactive}
-          nameIcon={'home'}
-          typeIcon={'antdesign'}
-          labelField={'Judet'}
-          dataField={'Judet'}
-          value={userInfoBilling.address}
-          settingsMode={true}
-          changeTextInput={changeAddressHandler}
-        />
-        */}
+
           {/* <UserField
             widthStyle={width - 30}
             colorBackground={colors.backgroundBottomTabInactive}
             nameIcon={'home'}
             typeIcon={'antdesign'}
             labelField={'Cod Postal'}
-            dataField={'Cod Postal'}
+            dataField={' '}
             value={userInfoBilling.address}
             settingsMode={true}
             changeTextInput={changePostalCodeHandler}
@@ -513,6 +534,7 @@ function PayDesk({navigation, route}) {
               typeIcon={'ionicon'}
               labelField={'Suma'}
               dataField={' '}
+              phoneType={true}
               value={userInfoBilling.amount}
               settingsMode={true}
               changeTextInput={amountTextHandler}
@@ -550,6 +572,8 @@ function PayDesk({navigation, route}) {
                   completeCart: true,
                   validDataCard: true,
                 });
+                checkUserDataFromForm();
+                initializePaymentSheet();
               }
             }}
             cardStyle={{

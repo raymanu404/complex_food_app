@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import colors from '../../config/colors/colors';
 import {Icon} from 'react-native-elements';
+import CountryPicker from 'react-native-country-picker-modal';
 
 function UserField(props) {
   const [focus, setFocus] = useState(false);
@@ -102,6 +103,19 @@ function UserField(props) {
 
           {!props.settingsMode ? (
             <Text style={styles.buttonText}>{props.labelField} </Text>
+          ) : props.countryMode ? (
+            <CountryPicker
+              countryCode={props.countryCode}
+              withFilter={true}
+              // withFlag={true}
+              withAlphaFilter={true}
+              withCountryNameButton={true}
+              onSelect={props.onSelectCountry}
+              visible={props.visibilityCountryPicker}
+              modalProps={{
+                animationType: 'slide',
+              }}
+            />
           ) : (
             <>
               <TextInput

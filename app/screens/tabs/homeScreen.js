@@ -17,17 +17,21 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  Modal,
   TouchableHighlight,
   FlatList,
 } from 'react-native';
 import colors from '../../../config/colors/colors';
+import {useFocusEffect} from '@react-navigation/native';
 import {Icon} from 'react-native-elements';
 import * as Animatable from 'react-native-animatable';
-import {MenuProductsContext, UserContext} from '../../../App';
+import {UserContext} from '../../../App';
 import api_axios from '../../../config/api/api_axios';
 import Loading from '../loading';
+import RenderEmptyList from '../../components/RenderEmptyList';
 
 const height = Dimensions.get('screen').height;
+const windowheight = Dimensions.get('window').height;
 const width = Dimensions.get('screen').width;
 const menu_container_width = 300;
 const enum_categories = {
@@ -121,40 +125,37 @@ function Home({navigation}) {
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerId = userDataLogin.id || 1;
   const [menuData, setMenuData] = useState([]);
+  const [searchMenuData, setSearchMenuData] = useState([]);
   const [infoToSearch, setInfoToSearch] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  useEffect(() => {
-    // eslint-disable-next-line no-undef
-    const ac = new AbortController();
-    const getProducts = async () => {
-      try {
-        let headers = {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
-        };
+  useFocusEffect(
+    React.useCallback(() => {
+      const getProducts = async () => {
+        try {
+          let headers = {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+          };
 
-        const response = await api_axios.get('/products', headers);
-        setMenuData(response.data);
-      } catch (error) {
-        console.log(error.response.status);
-      }
-      setLoading(false);
-    };
+          const response = await api_axios.get('/products', headers);
+          setMenuData(response.data);
+        } catch (error) {
+          console.log(error.response.status);
+        }
+        setLoading(false);
+      };
 
-    getProducts();
-    // return () => {
-    //   ac.abort();
-    //   setMenuData([]);
-
-    // };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      getProducts();
+    }, []),
+  );
 
   if (loading) {
     return <Loading />;
   }
 
+  // ------------------- MENU STANDARD ITEM ---------------------------
   const MenuItem = props => (
     <View style={styles.menuContainer}>
       <TouchableHighlight
@@ -186,6 +187,39 @@ function Home({navigation}) {
     );
   };
 
+  // ---------------------- SEARCH MENU ITEM ----------------------
+  const SearchMenuItem = props => (
+    <View style={styles.searchMenuContainer}>
+      <TouchableHighlight
+        underlayColor={colors.white}
+        onPress={() => goToDetailsStandard(props)}>
+        <Image
+          source={{uri: props.image}}
+          style={styles.search_menu_image}
+          resizeMode="cover"
+        />
+      </TouchableHighlight>
+      <Text style={styles.title_menu}>{props.title} </Text>
+      <Text style={styles.price_menu}>{props.price} RON</Text>
+    </View>
+  );
+
+  const renderSearchMenuItem = ({item, index}) => {
+    return (
+      <SearchMenuItem
+        title={item.title}
+        image={item.image}
+        price={item.price}
+        details={item.description}
+        category={item.category}
+        quantity={0}
+        mykey={item.id}
+        userId={userDataLogin.id || 8}
+      />
+    );
+  };
+
+  // ------------------ CATEGORIES ITEM-----------------------------
   const Categories = props => (
     <View style={styles.categories_container}>
       <TouchableOpacity
@@ -213,14 +247,6 @@ function Home({navigation}) {
     />
   );
 
-  const getCartIdFromShoppingHandler = CARTID => {
-    console.log(CARTID);
-    setUserDataLogin({
-      ...userDataLogin,
-      cartId: CARTID,
-    });
-  };
-
   const goToDetailsCategories = props => {
     let menuDataForCategories =
       menuData.length !== 0
@@ -243,7 +269,6 @@ function Home({navigation}) {
     });
     navigation.navigate('DetailsCategoriesScreen', {
       menuDataForCategories: dataCategories,
-      // onGoBack: getCartIdFromShoppingHandler,
     });
   };
   const goToDetailsStandard = props => {
@@ -261,6 +286,7 @@ function Home({navigation}) {
       menuStandardObj: menuStandardObj,
       // onGoBack: getCartIdFromShoppingHandler,
     });
+    setIsModalVisible(false);
   };
 
   const searchBarHandler = val => {
@@ -269,8 +295,25 @@ function Home({navigation}) {
 
   const onSearchBarButton = () => {
     if (String(infoToSearch) !== '') {
-      console.log('search bar');
-      //cu api
+      openCloseSearchMenuModalHandler();
+      let searchMenuStartWithOrIncludes = Array.from(menuData).filter(
+        x =>
+          Boolean(x.isInStock) === true &&
+          (String(x.title).toLocaleLowerCase().startsWith(infoToSearch) ||
+            String(x.title).toLocaleLowerCase().includes(infoToSearch)),
+      );
+      setSearchMenuData(searchMenuStartWithOrIncludes);
+    }
+  };
+  const onSearchBarModalButton = () => {
+    if (String(infoToSearch) !== '') {
+      let searchMenuStartWithOrIncludes = Array.from(menuData).filter(
+        x =>
+          Boolean(x.isInStock) === true &&
+          (String(x.title).toLocaleLowerCase().startsWith(infoToSearch) ||
+            String(x.title).toLocaleLowerCase().includes(infoToSearch)),
+      );
+      setSearchMenuData(searchMenuStartWithOrIncludes);
     }
   };
 
@@ -279,6 +322,10 @@ function Home({navigation}) {
       buyerId: buyerId,
     });
   };
+
+  // open close search menus in modal
+  const openCloseSearchMenuModalHandler = () =>
+    setIsModalVisible(() => !isModalVisible);
 
   return (
     <TouchableWithoutFeedback
@@ -309,6 +356,92 @@ function Home({navigation}) {
               />
             </TouchableOpacity>
           </View>
+
+          {/* ------------------------------- FILTERS MODAL -------------------------- */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isModalVisible}
+            onRequestClose={() => openCloseSearchMenuModalHandler()}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}>
+              <View style={styles.centeredView}>
+                <View style={styles.modalView}>
+                  {/* --------------------- CLOSE BUTTON ------------------------ */}
+                  <View style={styles.filterContainer}>
+                    <TouchableOpacity
+                      style={styles.closeModalButton}
+                      onPress={() => openCloseSearchMenuModalHandler()}
+                      activeOpacity={0.5}>
+                      <Icon
+                        name={'closecircleo'}
+                        type={'antdesign'}
+                        color={colors.backgroundBottomTabInactive}
+                        size={30}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.flexDirectionRow}>
+                    {/* --------------------------------- SEARCH BAR ------------------------------ */}
+                    <View
+                      style={[
+                        styles.searchBar,
+                        {
+                          marginTop: -44,
+                          width: width * 0.86,
+                          marginRight: 36,
+                        },
+                      ]}>
+                      <TextInput
+                        style={styles.textInput}
+                        autoCapitalize="none"
+                        placeholder="Cauta mancarea preferata!"
+                        value={infoToSearch}
+                        onChangeText={val => searchBarHandler(val)}
+                        placeholderTextColor={colors.backgroundButtonActive}
+                      />
+                      <TouchableOpacity
+                        style={styles.icon}
+                        onPress={() => onSearchBarModalButton()}>
+                        <Icon
+                          name={'search'}
+                          type="feather"
+                          color={colors.backgroundButtonActive}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <View style={styles.modalInsideContainer}>
+                    {searchMenuData.length !== 0 ? (
+                      <>
+                        <FlatList
+                          horizontal={false}
+                          data={searchMenuData}
+                          keyExtractor={item => item.id}
+                          renderItem={renderSearchMenuItem}
+                        />
+                      </>
+                    ) : (
+                      <View
+                        style={{
+                          flex: 1,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}>
+                        <RenderEmptyList
+                          title_message={'Meniul acesta nu exista!'}
+                        />
+                      </View>
+                    )}
+                  </View>
+                </View>
+                {/* END OF MODAL VIEW */}
+              </View>
+              {/* END OF CENTERVIEW */}
+            </TouchableWithoutFeedback>
+          </Modal>
         </View>
 
         {/* --------------------------------FOOTER ---------------------------------- */}
@@ -413,7 +546,7 @@ const styles = StyleSheet.create({
     width: menu_container_width,
     height: 360,
     borderRadius: 16,
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -423,14 +556,31 @@ const styles = StyleSheet.create({
     elevation: 6,
     backgroundColor: colors.white,
   },
+
+  searchMenuContainer: {
+    marginTop: 20,
+    marginBottom: 10,
+    width: menu_container_width + 10,
+    height: 360,
+    borderRadius: 27,
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
+    backgroundColor: colors.backgroundApp,
+  },
   searchBar: {
     display: 'flex',
     width: width * 0.9,
     flexDirection: 'row',
     alignSelf: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     height: 40,
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -447,7 +597,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: width * 0.6,
     paddingLeft: 20,
-    color: 'rgba(47, 134, 166, 1)',
+    color: colors.backgroundButtonActive,
     fontSize: 18,
     height: 44,
     fontWeight: '500',
@@ -473,6 +623,11 @@ const styles = StyleSheet.create({
 
   menu_standard_image: {
     width: menu_container_width,
+    height: 300,
+    borderRadius: 16,
+  },
+  search_menu_image: {
+    width: menu_container_width + 20,
     height: 300,
     borderRadius: 16,
   },
@@ -548,7 +703,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundButtonActive,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000000',
+    shadowColor: colors.black,
     shadowOffset: {
       width: 0,
       height: 3,
@@ -556,6 +711,49 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
     elevation: 6,
+  },
+  closeModalButton: {
+    position: 'absolute',
+    // top: 3,
+    top: -20,
+    right: -width * 0.47,
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    // marginTop: 22,
+  },
+  flexDirectionRow: {
+    flexDirection: 'row',
+    marginTop: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalView: {
+    flex: 1,
+    width: width,
+    // height: windowheight * 1.2,
+    // margin: 20,
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    // marginBottom: 30,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalInsideContainer: {
+    flex: 1,
+    // justifyContent: 'flex-start',
+    // alignItems: 'center',
+    // marginLeft: -width * 0.1,
   },
 });
 
