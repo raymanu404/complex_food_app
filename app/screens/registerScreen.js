@@ -75,8 +75,8 @@ function Register({navigation}) {
   });
 
   const [passwordVisible, setPasswordVisible] = useState({
-    password: false,
-    re_password: false,
+    password: true,
+    re_password: true,
   });
 
   // CHANGE PASSWORD AND RE_PASSWORD VISIBILITY
@@ -105,6 +105,7 @@ function Register({navigation}) {
       setInvalidInput({
         ...invalidInput,
         firstNameError: false,
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -129,6 +130,7 @@ function Register({navigation}) {
       setInvalidInput({
         ...invalidInput,
         lastNameError: false,
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -144,7 +146,6 @@ function Register({navigation}) {
 
   // PHONE TEXT HANDLER
   const phoneTextHandler = val => {
-    console.log(typeof val);
     if (String(val).length !== 0 && validatePhone(val)) {
       setUserInfo({
         ...userInfo,
@@ -154,6 +155,7 @@ function Register({navigation}) {
       setInvalidInput({
         ...invalidInput,
         phoneError: false,
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -185,6 +187,11 @@ function Register({navigation}) {
         ...userInfo,
         gender: val,
       });
+      setInvalidInput({
+        ...invalidInput,
+        genderError: false,
+        emptyFiledsError: '',
+      });
     } else {
       setUserInfo({
         ...userInfo,
@@ -208,6 +215,7 @@ function Register({navigation}) {
       setInvalidInput({
         ...invalidInput,
         emailError: false,
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -233,6 +241,7 @@ function Register({navigation}) {
         ...invalidInput,
         passwordError: false,
         passwordTypeError: '',
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -260,6 +269,7 @@ function Register({navigation}) {
         ...invalidInput,
         re_passwordError: false,
         re_passwordTypeError: '',
+        emptyFiledsError: '',
       });
     } else {
       setUserInfo({
@@ -277,11 +287,11 @@ function Register({navigation}) {
   const onFocusPassword = (val, passowrdType) => {
     switch (passowrdType) {
       case 'password':
-        if (!String(val).match(new RegExp(/[0-9]/))) {
+        if (!String(val).match(new RegExp(/\d/))) {
           setInvalidInput({
             ...invalidInput,
             passwordError: true,
-            passwordTypeError: 'Parola trebuie sa contina [0-9]',
+            passwordTypeError: 'Parola trebuie sa contina cel putin o cifra!',
           });
         }
 
@@ -309,7 +319,7 @@ function Register({navigation}) {
   };
 
   const validatePassword = password => {
-    var regularExpression = /^(?=.*[0-9])(?=.*)[a-zA-Z0-9]{8,40}$/;
+    var regularExpression = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,40}$/;
     return String(password).match(regularExpression);
   };
 
@@ -325,9 +335,9 @@ function Register({navigation}) {
     return phone.match(/\d/g).length === 10;
   };
 
-  const showToastWithGravity = () => {
+  const showToastWithGravity = message => {
     ToastAndroid.showWithGravity(
-      'Inregistrarea a fost cu succes!',
+      message,
       ToastAndroid.LONG,
       ToastAndroid.CENTER,
     );
@@ -375,21 +385,15 @@ function Register({navigation}) {
         await api_axios
           .post('/buyers/register', userDataForRegister)
           .then(response => {
-            console.log(response.statusText);
             if (response.status === 201) {
               register();
-              showToastWithGravity();
+              showToastWithGravity('Inregistrarea a fost cu succes!');
               goToLoginScreen();
             }
           })
           .catch(e => {
-            if (e.response.status === 400) {
-              console.log(e.response.data);
-              setInvalidInput({
-                ...invalidInput,
-                emptyFiledsError: 'Campuri invalide pentru inregistrare!',
-              });
-            } else if (e.response.status === 500) {
+            if (e.response.status === 400 || e.response.status === 500) {
+              showToastWithGravity('Upps. a aparut o eroare!');
               setInvalidInput({
                 ...invalidInput,
                 emptyFiledsError: 'Campuri invalide pentru inregistrare!',

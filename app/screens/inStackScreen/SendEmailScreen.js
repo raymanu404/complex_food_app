@@ -150,11 +150,12 @@ function SendEmail({navigation, route}) {
         let dataToSend = {
           email: userInfo.email,
         };
-        console.log(dataToSend);
+
         const responseSendEmail = await api_axios.post(
           '/buyers/forgot-password',
           dataToSend,
         );
+        console.log(responseSendEmail.data);
 
         if (responseSendEmail.status === 200) {
           if (

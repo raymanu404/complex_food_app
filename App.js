@@ -45,7 +45,7 @@ export const UserContext = React.createContext();
 export const MenuProductsContext = React.createContext();
 
 function App() {
-  const [userToken, setUserToken] = useState('null');
+  const [userToken, setUserToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // momentan lasam astea default

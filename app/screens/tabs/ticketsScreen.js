@@ -157,6 +157,7 @@ function Tickets({navigation}) {
                     successMessage: 'Tranzactia a fost realizata cu succes!',
                   });
 
+                  const getBalance = String(response.data).split('!')[1];
                   setShowRenderToast({
                     ...showRenderToast,
                     success: true,
@@ -164,7 +165,7 @@ function Tickets({navigation}) {
                   });
                   setUserInfo({
                     ...userInfo,
-                    balance: String(response.data),
+                    balance: Number(getBalance),
                   });
                 }
               },

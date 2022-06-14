@@ -81,6 +81,7 @@ function PayDesk({navigation, route}) {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
         };
+
         const response = await api_axios.get(
           '/payment/publishableKey',
           headers,
@@ -318,8 +319,6 @@ function PayDesk({navigation, route}) {
   const confirmPaymentFunction = async () => {
     try {
       checkUserDataFromForm();
-      console.log(clientSecret);
-      // fetchPayementIntentClientSecret();
       if (!clientSecret) {
         return;
       }
@@ -342,7 +341,6 @@ function PayDesk({navigation, route}) {
             fail: false,
           });
         } else {
-          console.log(paymentIntent);
           if (paymentIntent.status === 'Succeeded') {
             let headers = {
               'Content-Type': 'application/json',
@@ -350,6 +348,7 @@ function PayDesk({navigation, route}) {
             const balanceToSend = {
               balance: Number(userInfoBilling.amount).toFixed(2),
             };
+
             const reponseDepositBalance = await api_axios.patch(
               `/buyers/deposit-balance/${buyerId}`,
               balanceToSend,
@@ -409,22 +408,7 @@ function PayDesk({navigation, route}) {
     }
   };
 
-  const amountOnBlurHandler = flag => {
-    // console.log(`amount on blur : ${flag}`);
-    // if (countOnBlurAmount === 0) {
-    //   if (flag) {
-    //     setCountOnBlurAmount(countOnBlurAmount + 1);
-    //     console.log(
-    //       `on blur amount : ${countOnBlurAmount} and amount : ${userInfoBilling.amount}`,
-    //     );
-    //     if (userInfoBilling.amount > 0) {
-    //       initializePaymentSheet();
-    //     } else {
-    //       setCountOnBlurAmount(0);
-    //     }
-    //   }
-    // }
-  };
+  const amountOnBlurHandler = flag => {};
 
   const cityOnBlurHandler = flag => {
     if (flag) {
@@ -465,8 +449,6 @@ function PayDesk({navigation, route}) {
             <UserField
               widthStyle={width - 30}
               colorBackground={colors.backgroundBottomTabInactive}
-              // nameIcon={'flag'}
-              // typeIcon={'feather'}
               labelField={'Tara'}
               dataField={' '}
               settingsMode={true}
@@ -548,7 +530,7 @@ function PayDesk({navigation, route}) {
             />
           </View>
           <CardField
-            postalCodeEnabled={false}
+            postalCodeEnabled={true}
             placeholders={{
               number: '4242 4242 4242 4242',
             }}

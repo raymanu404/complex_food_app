@@ -239,14 +239,6 @@ function ConfirmCode({navigation, route}) {
       .concat(codeLetters.l5)
       .concat(codeLetters.l6);
 
-    // testing
-    // console.log(forgotPassword);
-    // if (forgotPassword) {
-    //   navigation.navigate('ForgotPasswordScreen', {idUser: idUser});
-    // } else {
-    //   navigation.goBack();
-    // }
-
     if (letters.length === 6) {
       setShowRenderToast({
         ...showRenderToast,
@@ -330,7 +322,9 @@ function ConfirmCode({navigation, route}) {
           </TouchableOpacity>
           <RenderConfirmImage
             title_message={
-              'Introduceti codul primit din email pentru a va putea confirma contul!'
+              forgotPassword
+                ? 'Introduceti codul de verificare!'
+                : 'Introduceti codul primit din email pentru a va putea confirma contul!'
             }
           />
 

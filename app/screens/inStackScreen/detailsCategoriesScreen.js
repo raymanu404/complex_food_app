@@ -25,13 +25,13 @@ const width = Dimensions.get('screen').width;
 const menu_container_width = width - 50;
 
 function DetailsCategories({navigation, route}) {
-  const [dataMenu, setDataMenu] = useState(route.params.menuDataForCategories);
-  const [textMessage, setTextMessage] = useState('');
   const data = route.params.menuDataForCategories;
+  const [dataMenu, setDataMenu] = useState(data);
   const [showRenderToast, setShowRenderToast] = useState({
     success: false,
     fail: false,
   });
+
   const [displayMessage, setDisplayMessage] = useState({
     successTitle: '',
     successMessage: '',
@@ -50,7 +50,7 @@ function DetailsCategories({navigation, route}) {
   const RenderToastSuccess = props => {
     return (
       <RenderToastMessage
-        multiplier={0.79}
+        multiplier={0.88}
         showComponent={props.showComponent}
         status={'success'}
         title_message={props.title_message}
@@ -62,7 +62,7 @@ function DetailsCategories({navigation, route}) {
   const RenderToastFail = props => {
     return (
       <RenderToastMessage
-        multiplier={0.79}
+        multiplier={0.88}
         showComponent={props.showComponent}
         status={'fail'}
         title_message={props.title_message}
@@ -86,11 +86,11 @@ function DetailsCategories({navigation, route}) {
   };
 
   const addToQuantity = props => {
-    console.log(dataMenu[props.myIndex].quantity);
-
     if (props.quantity < 20) {
       const newDataMenu = Object.assign({}, dataMenu);
+      console.log(newDataMenu);
       newDataMenu[props.myIndex].quantity = props.quantity + 1;
+
       setDataMenu(newDataMenu);
     }
     setShowRenderToast({
@@ -274,7 +274,14 @@ function DetailsCategories({navigation, route}) {
           onPress={() => navigation.goBack()}
         />
       </View>
-      <View style={styles.menu_container}>
+      <View
+        style={[
+          styles.menu_container,
+          {
+            paddingBottom:
+              showRenderToast.success || showRenderToast.fail ? 0 : 60,
+          },
+        ]}>
         {Array.from(data).length === 0 ? (
           <RenderEmptyList
             title_message={'Momentan nu exista acest tip de produs!'}
@@ -322,7 +329,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 60,
   },
   image_container: {
     marginTop: 20,

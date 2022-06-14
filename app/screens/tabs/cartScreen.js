@@ -31,7 +31,11 @@ function Cart({navigation}) {
   const [loading, setLoading] = useState(true);
   const [userDataLogin, setUserDataLogin] = useContext(UserContext);
   const buyerID = userDataLogin.id || 1;
-  const [couponCode, setCouponCode] = useState('default');
+  const [couponCode, setCouponCode] = useState({
+    couponCode: 'default',
+    typeOfCoupon: 0,
+  });
+
   const [totalPrice, setTotalPrice] = useState(0);
   const [originalTotalPrice, setOriginalTotalPrice] = useState(0);
   const [confirmCart, setConfirmCart] = useState({
@@ -74,8 +78,10 @@ function Cart({navigation}) {
               ...confirmCart,
               confirmed: false,
             });
-            setTotalPrice(sum.toFixed(2));
-            setOriginalTotalPrice(sum.toFixed(2));
+            if (couponCode.typeOfCoupon === 0) {
+              setTotalPrice(sum.toFixed(2));
+              setOriginalTotalPrice(sum.toFixed(2));
+            }
           }
         } catch (error) {
           console.log(error.response.status);
@@ -87,14 +93,9 @@ function Cart({navigation}) {
         success: false,
         fail: false,
       });
-      console.log(String(couponCode));
-      if (
-        String(couponCode) === 'default' ||
-        String(couponCode) === 'ordered'
-      ) {
-        getDataFromCart();
-      }
+      console.log(String(couponCode.couponCode));
 
+      getDataFromCart();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
@@ -185,7 +186,11 @@ function Cart({navigation}) {
         );
 
         if (menuDataInCart.length === 0) {
-          setCouponCode('default');
+          setCouponCode({
+            ...couponCode,
+            couponCode: 'default',
+            typeOfCoupon: 0,
+          });
         }
         let newTotalPrice =
           totalPrice - Number(props.price) * Number(props.quantity);
@@ -353,11 +358,17 @@ function Cart({navigation}) {
         discount = 10;
         break;
     }
+
     newTotalPriceWithDiscount =
       totalPrice - (originalTotalPrice * discount) / 100 - PRICE_OF_COUPON;
     setTotalPrice(newTotalPriceWithDiscount);
-    setCouponCode(code);
+    setCouponCode({
+      ...couponCode,
+      couponCode: code,
+      typeOfCoupon: typeOfDiscount,
+    });
   };
+
   const applyUserCouponHandler = () => {
     if (totalPrice >= 12) {
       navigation.navigate('CouponsListScreen', {
@@ -391,7 +402,12 @@ function Cart({navigation}) {
         `/carts/delete/${buyerID}`,
         headers,
       );
-      console.log(response.data);
+      setCouponCode({
+        ...couponCode,
+        couponCode: 'default',
+        typeOfCoupon: 0,
+      });
+
       const responseMessage = response.data;
       if (String(responseMessage) === 'Success!') {
         setDisplayMessage({
@@ -399,7 +415,7 @@ function Cart({navigation}) {
           successTitle: 'Succes!',
           successMessage: 'Cosul a fost sters cu succes!',
         });
-        setCouponCode('default');
+
         setShowRenderToast({
           ...showRenderToast,
           success: true,
@@ -452,7 +468,7 @@ function Cart({navigation}) {
       };
       if (checkoutBalanceRedirectOnPaymentScreen(userDataLogin.balance)) {
         let couponCodeFromBuyer = {
-          couponCart: couponCode,
+          couponCart: couponCode.couponCode,
         };
 
         const response = await api_axios.patch(
@@ -460,11 +476,16 @@ function Cart({navigation}) {
           couponCodeFromBuyer,
           headers,
         );
+
         console.log(response.data);
         const orderCodeFromResponse = response.data;
         if (String(orderCodeFromResponse).startsWith('OrderCode')) {
           const orderCode = String(orderCodeFromResponse).split(':')[1];
-
+          setCouponCode({
+            ...couponCode,
+            couponCode: 'ordered',
+            typeOfCoupon: 0,
+          });
           setConfirmCart({
             ...confirmCart,
             confirmed: true,
@@ -483,7 +504,6 @@ function Cart({navigation}) {
           });
           setTimeout(() => {
             setMenuDataInCart([]);
-            setCouponCode('ordered');
           }, 1000);
         }
         // navigation.goBack();
@@ -525,9 +545,9 @@ function Cart({navigation}) {
                   </View>
                 </TouchableOpacity>
                 <Text style={styles.textCouponCode}>
-                  {couponCode === 'default'
+                  {couponCode.typeOfCoupon === 0
                     ? ''
-                    : String(`Cod cupon: ${couponCode}`)}
+                    : String(`Discount: ${couponCode.typeOfCoupon}0% reducere`)}
                 </Text>
               </View>
 

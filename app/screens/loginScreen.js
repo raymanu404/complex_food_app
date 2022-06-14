@@ -115,30 +115,29 @@ function Login({navigation}) {
         const response = await api_axios.post('/buyers/login', loginData, {
           headers,
         });
+        if (response.status === 200) {
+          const result = response.data;
+          var emailFromAPI = String(result.email);
+          var passwordFromAPI = String(result.password);
+          var genderFromAPI = String(result.gender);
+          var firstnameFromAPI = String(result.firstName);
+          var lastnameFromAPI = String(result.lastName);
+          var phonenumberFromAPI = String(result.phoneNumber);
+          var balanceFromAPI = Number(result.balance);
+          let confirmed = result.confirmed;
 
-        const result = response.data;
-        var emailFromAPI = String(result.email);
-        var passwordFromAPI = String(result.password);
-        var genderFromAPI = String(result.gender);
-        var firstnameFromAPI = String(result.firstName);
-        var lastnameFromAPI = String(result.lastName);
-        var phonenumberFromAPI = String(result.phoneNumber);
-        var balanceFromAPI = Number(result.balance);
-        let confirmed = result.confirmed;
+          const sendUserData = {
+            id: result.id,
+            email: emailFromAPI,
+            firstName: firstnameFromAPI,
+            lastName: lastnameFromAPI,
+            phoneNumber: phonenumberFromAPI,
+            gender: genderFromAPI,
+            password: passwordFromAPI,
+            confirmed: confirmed,
+            balance: balanceFromAPI,
+          };
 
-        const sendUserData = {
-          id: result.id,
-          email: emailFromAPI,
-          firstName: firstnameFromAPI,
-          lastName: lastnameFromAPI,
-          phoneNumber: phonenumberFromAPI,
-          gender: genderFromAPI,
-          password: passwordFromAPI,
-          confirmed: confirmed,
-          balance: balanceFromAPI,
-        };
-
-        if (userInfo.email === emailFromAPI) {
           if (confirmed) {
             setTextError('');
             login(sendUserData);
@@ -600,25 +599,3 @@ const styles = StyleSheet.create({
 });
 
 export default Login;
-
-{
-  /* <Text onPress={() => login()}>Login Screen</Text>
-<Text onPress={() => goToRegister()}>Register</Text> */
-}
-
-{
-  /* <LoginButton
-  onLoginFinished={(error, result) => {
-    if (error) {
-      console.log('login has error: ' + result.error);
-    } else if (result.isCancelled) {
-      console.log('login is cancelled.');
-    } else {
-      AccessToken.getCurrentAccessToken().then(data => {
-        console.log(data.accessToken.toString());
-      });
-    }
-  }}
-  onLogoutFinished={() => console.log('logout.')}
-/> */
-}
