@@ -93,9 +93,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    setTimeout(() => {
+    const loadingTimer = setTimeout(() => {
       setIsLoading(false);
     }, 100);
+
+    return () => loadingTimer;
   }, []);
 
   if (isLoading) {
