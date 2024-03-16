@@ -23,6 +23,8 @@ DerivedData
 
 # Android/IntelliJ
 #
+android/
+ios/
 build/
 .idea
 .gradle
@@ -58,3 +60,8 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+
+# Expo
+.expo
+dist/
+web-build/
