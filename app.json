@@ -1,4 +1,9 @@
 {
-  "name": "complex_food_v1",
-  "displayName": "complex_food_v1"
+  "expo": {
+    "name": "complex_food_v1",
+    "slug": "complex_food_v1",
+    "web": {
+      "bundler": "metro"
+    }
+  }
 }
