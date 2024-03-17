@@ -60,7 +60,8 @@ function OrderItemsScreen({ navigation, route }) {
                             {
                                 color: colors.backgroundButtonActive
                             }
-                        ]}>
+                        ]}
+                    >
                         Cantitate:
                         {props.quantity}{' '}
                     </Text>

@@ -50,7 +50,8 @@ const RenderToastMessage = (props) => {
                         {
                             transform: [{ translateY: popAnim }]
                         }
-                    ]}>
+                    ]}
+                >
                     <View style={styles.toastRow}>
                         <Icon
                             name={props.status === 'success' ? 'checkcircleo' : 'closecircleo'}

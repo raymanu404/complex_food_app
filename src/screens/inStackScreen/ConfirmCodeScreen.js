@@ -308,7 +308,8 @@ function ConfirmCode({ navigation, route }) {
         <TouchableWithoutFeedback
             onPress={() => {
                 Keyboard.dismiss()
-            }}>
+            }}
+        >
             <View style={styles.container}>
                 <View style={styles.inputContainer}>
                     <TouchableOpacity style={styles.icon} onPress={() => navigation.goBack()}>

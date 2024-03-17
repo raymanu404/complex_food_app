@@ -274,7 +274,8 @@ function OrdersScreen({ navigation, route }) {
                 <TouchableOpacity
                     style={styles.filterItem}
                     onPress={() => openCloseFiltersModalHandler()}
-                    activeOpacity={0.5}>
+                    activeOpacity={0.5}
+                >
                     <Icon
                         style={styles.filterItem}
                         name={'filter'}
@@ -291,7 +292,8 @@ function OrdersScreen({ navigation, route }) {
                 animationType="slide"
                 transparent={true}
                 visible={isModalVisible}
-                onRequestClose={() => openCloseFiltersModalHandler()}>
+                onRequestClose={() => openCloseFiltersModalHandler()}
+            >
                 <View style={styles.centeredView}>
                     <View style={styles.modalView}>
                         {/* ----------- CLOSE BUTTON */}
@@ -299,7 +301,8 @@ function OrdersScreen({ navigation, route }) {
                             <TouchableOpacity
                                 style={styles.closeModalButton}
                                 onPress={() => openCloseFiltersModalHandler()}
-                                activeOpacity={0.5}>
+                                activeOpacity={0.5}
+                            >
                                 <Icon
                                     name={'closecircleo'}
                                     type={'antdesign'}
@@ -391,7 +394,8 @@ function OrdersScreen({ navigation, route }) {
                                 <View style={styles.flexDirectionRow}>
                                     <RadioButton.Group
                                         onValueChange={(newValue) => sortHandler(newValue)}
-                                        value={sorting.typeOfSorting}>
+                                        value={sorting.typeOfSorting}
+                                    >
                                         {/* <View style={styles.genderContainer}> */}
                                         <View style={styles.genderItem}>
                                             <Text style={styles.genderTextItem}>

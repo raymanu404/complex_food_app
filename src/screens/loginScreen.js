@@ -282,7 +282,8 @@ function Login({ navigation }) {
                                 onFocusInput.emailFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'mail'}
                                 type="ant-design"
@@ -321,7 +322,8 @@ function Login({ navigation }) {
                                 onFocusInput.passwordFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'lock'}
                                 type="feather"
@@ -351,7 +353,8 @@ function Login({ navigation }) {
 
                             <TouchableOpacity
                                 style={[styles.icon, { paddingRight: 10 }]}
-                                onPress={() => changePasswordVisibility()}>
+                                onPress={() => changePasswordVisibility()}
+                            >
                                 <Icon
                                     name={passwordVisible ? 'eye-off' : 'eye'}
                                     type="feather"
@@ -366,13 +369,15 @@ function Login({ navigation }) {
 
                     <TouchableOpacity
                         onPress={() => forgotPasswordHandler()}
-                        style={{ marginTop: -18 }}>
+                        style={{ marginTop: -18 }}
+                    >
                         <Text style={styles.text}>Ai uitat parola?</Text>
                     </TouchableOpacity>
                     <View style={styles.loginButtonsContainer}>
                         <TouchableHighlight
                             onPress={() => loginHandler()}
-                            underlayColor={colors.white}>
+                            underlayColor={colors.white}
+                        >
                             <View style={styles.button}>
                                 <Text style={styles.buttonText}>Login</Text>
                             </View>

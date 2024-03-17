@@ -411,7 +411,8 @@ function Register({ navigation }) {
             onPress={() => {
                 Keyboard.dismiss()
             }}
-            style={styles.container}>
+            style={styles.container}
+        >
             <View style={styles.header}>
                 <Text style={styles.textErrorInput}>{textError}</Text>
                 <View style={styles.logo_container}>
@@ -430,7 +431,8 @@ function Register({ navigation }) {
                     style={styles.userInputContainer}
                     keyboardDismissMode="on-drag"
                     contentContainerStyle={{ flexGrow: 1 }}
-                    keyboardShouldPersistTaps="handled">
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={styles.displayColumn}>
                         {/* ------------------------------------- PRENUME -------------------------------------- */}
                         <View
@@ -438,7 +440,8 @@ function Register({ navigation }) {
                                 onFocusInput.firstNameOnFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'user'}
                                 type="ant-design"
@@ -483,7 +486,8 @@ function Register({ navigation }) {
                                 onFocusInput.lastNameOnFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'user'}
                                 type="feather"
@@ -525,7 +529,8 @@ function Register({ navigation }) {
                                 onFocusInput.phoneOnFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'phone'}
                                 type="ant-design"
@@ -566,7 +571,8 @@ function Register({ navigation }) {
                     <View style={styles.genderContainerParent}>
                         <RadioButton.Group
                             onValueChange={(newValue) => genderRadioHandler(newValue)}
-                            value={userInfo.gender}>
+                            value={userInfo.gender}
+                        >
                             <View style={styles.genderContainer}>
                                 <View style={styles.genderItem}>
                                     <Text style={styles.genderTextItem}>Masculin</Text>
@@ -594,7 +600,8 @@ function Register({ navigation }) {
                                 onFocusInput.emailOnFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'mail'}
                                 type="ant-design"
@@ -635,7 +642,8 @@ function Register({ navigation }) {
                                 onFocusInput.passwordOnFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'lock'}
                                 type="feather"
@@ -667,7 +675,8 @@ function Register({ navigation }) {
                             />
                             <TouchableOpacity
                                 onPress={() => changePasswordVisibility()}
-                                style={[styles.icon, { marginLeft: width * 0.1 }]}>
+                                style={[styles.icon, { marginLeft: width * 0.1 }]}
+                            >
                                 <Icon
                                     name={passwordVisible.password ? 'eye-off' : 'eye'}
                                     type="feather"
@@ -686,7 +695,8 @@ function Register({ navigation }) {
                                 onFocusInput.re_passwordOnFocus
                                     ? styles.textInputContainerOnFocus
                                     : styles.textInputContainer
-                            }>
+                            }
+                        >
                             <Icon
                                 name={'unlock'}
                                 type="feather"
@@ -722,7 +732,8 @@ function Register({ navigation }) {
                             />
                             <TouchableOpacity
                                 style={[styles.icon, { marginLeft: width * 0.1 }]}
-                                onPress={() => changeRe_passwordVisibility()}>
+                                onPress={() => changeRe_passwordVisibility()}
+                            >
                                 <Icon
                                     name={passwordVisible.re_password ? 'eye-off' : 'eye'}
                                     type="feather"
@@ -739,14 +750,16 @@ function Register({ navigation }) {
                             style={[
                                 styles.textErrorInput,
                                 { fontSize: 15, color: colors.recycleBin, textAlign: 'center' }
-                            ]}>
+                            ]}
+                        >
                             {invalidInput.emptyFiledsError}
                         </Text>
                     </View>
                     <View style={styles.registerSection}>
                         <TouchableHighlight
                             underlayColor={colors.backgroundApp}
-                            onPress={() => registerHandler()}>
+                            onPress={() => registerHandler()}
+                        >
                             <View style={styles.button}>
                                 <Text style={styles.buttonText}>Inregistrare</Text>
                             </View>

@@ -385,7 +385,8 @@ function Profile({ navigation }) {
                         <View style={styles.editProfile}>
                             <TouchableOpacity
                                 onPress={() => settingsModeHandler()}
-                                activeOpacity={0.8}>
+                                activeOpacity={0.8}
+                            >
                                 <UserField
                                     widthStyle={150}
                                     colorBackground={colors.blackGrey}
@@ -408,7 +409,8 @@ function Profile({ navigation }) {
                                 </Text>
                                 <TouchableOpacity
                                     onPress={() => showHideBalanceHandler()}
-                                    activeOpacity={0.5}>
+                                    activeOpacity={0.5}
+                                >
                                     <Icon
                                         name={settingsMode.showBalance ? 'eye' : 'eye-off'}
                                         type={'feather'}
@@ -421,7 +423,8 @@ function Profile({ navigation }) {
                             <View style={styles.logoutButton}>
                                 <TouchableOpacity
                                     onPress={() => logoutHandler()}
-                                    activeOpacity={0.8}>
+                                    activeOpacity={0.8}
+                                >
                                     <UserField
                                         widthStyle={130}
                                         colorBackground={colors.blackGrey}
@@ -523,7 +526,8 @@ function Profile({ navigation }) {
                                 <Text style={styles.textLabel}>Setari Cont</Text>
                                 <TouchableOpacity
                                     onPress={() => changePasswordHandler()}
-                                    activeOpacity={0.8}>
+                                    activeOpacity={0.8}
+                                >
                                     <UserField
                                         widthStyle={width - 30}
                                         colorBackground={colors.blackGrey}
@@ -590,7 +594,8 @@ function Profile({ navigation }) {
                                 </>
                                 <TouchableOpacity
                                     activeOpacity={0.8}
-                                    onPress={() => depunereHandler()}>
+                                    onPress={() => depunereHandler()}
+                                >
                                     <UserField
                                         widthStyle={width - 30}
                                         colorBackground={colors.blackGrey}
@@ -602,7 +607,8 @@ function Profile({ navigation }) {
 
                                 <TouchableOpacity
                                     activeOpacity={0.8}
-                                    onPress={() => showHideTicketsHandler()}>
+                                    onPress={() => showHideTicketsHandler()}
+                                >
                                     <UserField
                                         widthStyle={width - 30}
                                         colorBackground={colors.blackGrey}
@@ -620,7 +626,8 @@ function Profile({ navigation }) {
                                         <View style={styles.settingsModeContainer}>
                                             <TouchableOpacity
                                                 onPress={() => saveSettingsHandler()}
-                                                activeOpacity={0.8}>
+                                                activeOpacity={0.8}
+                                            >
                                                 <UserField
                                                     widthStyle={150}
                                                     colorBackground={colors.blackGrey}

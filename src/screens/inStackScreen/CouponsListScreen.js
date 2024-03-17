@@ -186,7 +186,8 @@ function CouponsList({ navigation, route }) {
                         <TouchableOpacity
                             style={styles.filterItem}
                             onPress={() => sortCouponsByType()}
-                            activeOpacity={0.5}>
+                            activeOpacity={0.5}
+                        >
                             <Icon
                                 name={'list-number'}
                                 type={'foundation'}
@@ -197,7 +198,8 @@ function CouponsList({ navigation, route }) {
                         <TouchableOpacity
                             style={styles.filterItem}
                             onPress={() => showOnlyTypeOneCoupons()}
-                            activeOpacity={0.5}>
+                            activeOpacity={0.5}
+                        >
                             <Icon
                                 name={'numeric-1-circle-outline'}
                                 type={'material-community'}
@@ -208,7 +210,8 @@ function CouponsList({ navigation, route }) {
                         <TouchableOpacity
                             style={styles.filterItem}
                             onPress={() => showOnlyTypeTwoCoupons()}
-                            activeOpacity={0.5}>
+                            activeOpacity={0.5}
+                        >
                             <Icon
                                 name={'numeric-2-circle-outline'}
                                 type={'material-community'}
@@ -219,7 +222,8 @@ function CouponsList({ navigation, route }) {
                         <TouchableOpacity
                             style={styles.filterItem}
                             onPress={() => showOnlyTypeThreeCoupons()}
-                            activeOpacity={0.5}>
+                            activeOpacity={0.5}
+                        >
                             <Icon
                                 name={'numeric-3-circle-outline'}
                                 type={'material-community'}

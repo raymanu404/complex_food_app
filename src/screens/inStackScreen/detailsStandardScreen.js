@@ -177,7 +177,8 @@ function DetailsStandard({ navigation, route }) {
                 <Animatable.View
                     style={styles.image_container}
                     animation={'bounceIn'}
-                    duration={800}>
+                    duration={800}
+                >
                     <Image
                         source={{ uri: menuDataInCart.src }}
                         style={styles.image}
@@ -188,7 +189,8 @@ function DetailsStandard({ navigation, route }) {
                     style={[
                         styles.image_container,
                         { width: menu_container_width, marginBottom: 80 }
-                    ]}>
+                    ]}
+                >
                     <Text style={styles.title_menu}>{menuDataInCart.title}</Text>
                     <Text style={styles.price_menu}>{menuDataInCart.price} RON</Text>
                     <Text style={[styles.details_text, { fontWeight: '700', marginBottom: -10 }]}>
@@ -212,7 +214,8 @@ function DetailsStandard({ navigation, route }) {
                                 style={[
                                     styles.title_menu,
                                     { color: colors.backgroundButtonActive, fontSize: 28 }
-                                ]}>
+                                ]}
+                            >
                                 {`${quantity}`}{' '}
                             </Text>
                         </View>

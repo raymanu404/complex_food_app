@@ -151,7 +151,8 @@ function Home({ navigation }) {
         <View style={styles.menuContainer}>
             <TouchableHighlight
                 underlayColor={colors.white}
-                onPress={() => goToDetailsStandard(props)}>
+                onPress={() => goToDetailsStandard(props)}
+            >
                 <Image
                     source={{ uri: props.image }}
                     style={styles.menu_standard_image}
@@ -183,7 +184,8 @@ function Home({ navigation }) {
         <View style={styles.searchMenuContainer}>
             <TouchableHighlight
                 underlayColor={colors.white}
-                onPress={() => goToDetailsStandard(props)}>
+                onPress={() => goToDetailsStandard(props)}
+            >
                 <Image
                     source={{ uri: props.image }}
                     style={styles.search_menu_image}
@@ -317,7 +319,8 @@ function Home({ navigation }) {
         <TouchableWithoutFeedback
             onPress={() => {
                 Keyboard.dismiss()
-            }}>
+            }}
+        >
             <View style={styles.container}>
                 {/* ------------------------------------HEADER---------------------------- */}
                 <View style={styles.header}>
@@ -346,11 +349,13 @@ function Home({ navigation }) {
                         animationType="slide"
                         transparent={true}
                         visible={isModalVisible}
-                        onRequestClose={() => openCloseSearchMenuModalHandler()}>
+                        onRequestClose={() => openCloseSearchMenuModalHandler()}
+                    >
                         <TouchableWithoutFeedback
                             onPress={() => {
                                 Keyboard.dismiss()
-                            }}>
+                            }}
+                        >
                             <View style={styles.centeredView}>
                                 <View style={styles.modalView}>
                                     {/* --------------------- CLOSE BUTTON ------------------------ */}
@@ -358,7 +363,8 @@ function Home({ navigation }) {
                                         <TouchableOpacity
                                             style={styles.closeModalButton}
                                             onPress={() => openCloseSearchMenuModalHandler()}
-                                            activeOpacity={0.5}>
+                                            activeOpacity={0.5}
+                                        >
                                             <Icon
                                                 name={'closecircleo'}
                                                 type={'antdesign'}
@@ -377,7 +383,8 @@ function Home({ navigation }) {
                                                     width: width * 0.86,
                                                     marginRight: 36
                                                 }
-                                            ]}>
+                                            ]}
+                                        >
                                             <TextInput
                                                 style={styles.textInput}
                                                 autoCapitalize="none"
@@ -388,7 +395,8 @@ function Home({ navigation }) {
                                             />
                                             <TouchableOpacity
                                                 style={styles.icon}
-                                                onPress={() => onSearchBarModalButton()}>
+                                                onPress={() => onSearchBarModalButton()}
+                                            >
                                                 <Icon
                                                     name={'search'}
                                                     type="feather"
@@ -413,7 +421,8 @@ function Home({ navigation }) {
                                                     flex: 1,
                                                     justifyContent: 'center',
                                                     alignItems: 'center'
-                                                }}>
+                                                }}
+                                            >
                                                 <RenderEmptyList
                                                     title_message={'Meniul acesta nu exista!'}
                                                 />
@@ -438,7 +447,8 @@ function Home({ navigation }) {
                                 {
                                     color: colors.blackGrey
                                 }
-                            ]}>
+                            ]}
+                        >
                             Meniuri Standard
                         </Text>
                         <FlatList
@@ -465,7 +475,8 @@ function Home({ navigation }) {
                             style={[
                                 styles.textSuggest,
                                 { color: colors.blackGrey, right: width - width * 0.6 }
-                            ]}>
+                            ]}
+                        >
                             Categorii
                         </Text>
                         <FlatList
@@ -482,13 +493,15 @@ function Home({ navigation }) {
                             style={[
                                 styles.textSuggest,
                                 { color: colors.blackGrey, marginLeft: 10 }
-                            ]}>
+                            ]}
+                        >
                             Comenziile mele
                         </Text>
                         <Animatable.View
                             animation={'pulse'}
                             duration={800}
-                            style={styles.orderBackground}>
+                            style={styles.orderBackground}
+                        >
                             <Icon
                                 style={styles.ordersItem}
                                 onPress={() => goToOrdersHandler()}

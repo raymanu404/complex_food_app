@@ -174,7 +174,8 @@ function DetailsCategories({ navigation, route }) {
                     style={[
                         styles.price_menu,
                         { color: colors.backgroundButtonActive, marginTop: -10 }
-                    ]}>
+                    ]}
+                >
                     {props.price} RON
                 </Text>
                 <View style={styles.buttonsAddRemoveQuantity}>
@@ -197,7 +198,8 @@ function DetailsCategories({ navigation, route }) {
                                     color: colors.backgroundButtonActive,
                                     fontSize: 28
                                 }
-                            ]}>
+                            ]}
+                        >
                             {props.quantity}{' '}
                         </Text>
                     </View>
@@ -274,7 +276,8 @@ function DetailsCategories({ navigation, route }) {
                     {
                         paddingBottom: showRenderToast.success || showRenderToast.fail ? 0 : 60
                     }
-                ]}>
+                ]}
+            >
                 {Array.from(data).length === 0 ? (
                     <RenderEmptyList title_message={'Momentan nu exista acest tip de produs!'} />
                 ) : (

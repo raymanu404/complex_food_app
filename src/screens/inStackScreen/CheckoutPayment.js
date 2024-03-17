@@ -161,7 +161,8 @@ function CheckoutPayment({ navigation, route }) {
             <TouchableWithoutFeedback
                 onPress={() => {
                     Keyboard.dismiss()
-                }}>
+                }}
+            >
                 <View style={styles.userInputContainer}>
                     <CardField
                         postalCodeEnabled={false}

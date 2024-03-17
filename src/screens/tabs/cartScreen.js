@@ -220,7 +220,8 @@ function Cart({ navigation }) {
                         flexDirection: 'row',
                         justifyContent: 'space-evenly',
                         marginTop: -10
-                    }}>
+                    }}
+                >
                     {/* <View style={styles.buttonsAddRemoveQuantity}>
             <TouchableOpacity activeOpacity={0.8}>
               <View style={styles.buttonAddRemove}>
@@ -262,7 +263,8 @@ function Cart({ navigation }) {
                             flexDirection: 'column',
                             justifyContent: 'space-evenly',
                             marginTop: -10
-                        }}>
+                        }}
+                    >
                         <Text style={[styles.price_menu, { color: colors.backgroundButtonActive }]}>
                             Cantitate: {props.quantity}
                         </Text>
@@ -514,7 +516,8 @@ function Cart({ navigation }) {
                                     <View style={styles.button}>
                                         <Text
                                             style={styles.buttonText}
-                                            onPress={applyUserCouponHandler}>
+                                            onPress={applyUserCouponHandler}
+                                        >
                                             Aplica Cupon
                                         </Text>
                                     </View>
@@ -530,12 +533,14 @@ function Cart({ navigation }) {
                                 style={[
                                     styles.button,
                                     { backgroundColor: colors.white, width: 160, marginBottom: 30 }
-                                ]}>
+                                ]}
+                            >
                                 <Text
                                     style={[
                                         styles.buttonText,
                                         { color: colors.black, fontSize: 16 }
-                                    ]}>
+                                    ]}
+                                >
                                     Total: {totalPrice} RON
                                 </Text>
                             </View>
@@ -555,7 +560,8 @@ function Cart({ navigation }) {
                             <View style={styles.button}>
                                 <Text
                                     style={styles.buttonText}
-                                    onPress={() => confirmCommandHandler()}>
+                                    onPress={() => confirmCommandHandler()}
+                                >
                                     Plateste
                                 </Text>
                             </View>

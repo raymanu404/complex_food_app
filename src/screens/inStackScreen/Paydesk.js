@@ -432,7 +432,8 @@ function PayDesk({ navigation, route }) {
             <TouchableWithoutFeedback
                 onPress={() => {
                     Keyboard.dismiss()
-                }}>
+                }}
+            >
                 <View style={styles.userInputContainer}>
                     <TouchableOpacity activeOpacity={0.97} onPress={changeVisibilityCountryHandler}>
                         <UserField
@@ -556,7 +557,8 @@ function PayDesk({ navigation, route }) {
                         <TouchableOpacity
                             activeOpacity={0.8}
                             style={{ marginTop: 10 }}
-                            onPress={() => confirmPaymentFunction()}>
+                            onPress={() => confirmPaymentFunction()}
+                        >
                             <UserField
                                 widthStyle={240}
                                 colorBackground={colors.backgroundButtonActive}

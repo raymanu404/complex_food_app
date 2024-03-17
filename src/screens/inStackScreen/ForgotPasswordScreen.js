@@ -299,7 +299,8 @@ function ForgotPassword({ navigation, route }) {
         <TouchableWithoutFeedback
             onPress={() => {
                 Keyboard.dismiss()
-            }}>
+            }}
+        >
             <View style={styles.container}>
                 <TouchableOpacity style={styles.iconGoBack} onPress={() => navigation.goBack()}>
                     <Icon name={'arrow-left'} type="feather" color={colors.black} />
@@ -314,7 +315,8 @@ function ForgotPassword({ navigation, route }) {
                             onFocusInput.passwordOnFocus
                                 ? styles.textInputContainerOnFocus
                                 : styles.textInputContainer
-                        }>
+                        }
+                    >
                         <Icon
                             name={'lock'}
                             type="feather"
@@ -346,7 +348,8 @@ function ForgotPassword({ navigation, route }) {
                         />
                         <TouchableOpacity
                             onPress={() => changePasswordVisibility()}
-                            style={[styles.icon, { marginLeft: width * 0.1 }]}>
+                            style={[styles.icon, { marginLeft: width * 0.1 }]}
+                        >
                             <Icon
                                 name={passwordVisible.password ? 'eye-off' : 'eye'}
                                 type="feather"
@@ -366,7 +369,8 @@ function ForgotPassword({ navigation, route }) {
                             onFocusInput.re_passwordOnFocus
                                 ? styles.textInputContainerOnFocus
                                 : styles.textInputContainer
-                        }>
+                        }
+                    >
                         <Icon
                             name={'unlock'}
                             type="feather"
@@ -402,7 +406,8 @@ function ForgotPassword({ navigation, route }) {
                         />
                         <TouchableOpacity
                             style={[styles.icon, { marginLeft: width * 0.1 }]}
-                            onPress={() => changeRe_passwordVisibility()}>
+                            onPress={() => changeRe_passwordVisibility()}
+                        >
                             <Icon
                                 name={passwordVisible.re_password ? 'eye-off' : 'eye'}
                                 type="feather"

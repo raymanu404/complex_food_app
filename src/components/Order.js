@@ -62,7 +62,8 @@ function Order(props) {
                 <ImageBackground
                     style={styles.order_info}
                     source={backgroundImageOrder}
-                    resizeMode="cover">
+                    resizeMode="cover"
+                >
                     <Text style={styles.text_order}>Status comanda: {getStatusOrder()}</Text>
                 </ImageBackground>
                 <View style={styles.codeContainer}>
@@ -79,7 +80,8 @@ function Order(props) {
                 </View>
                 <TouchableOpacity
                     onPress={() => props.goToOrderItems(props.orderId, props.totalPrice)}
-                    activeOpacity={0.8}>
+                    activeOpacity={0.8}
+                >
                     <View style={styles.button}>
                         <Text style={styles.buttonText}>Vezi produsele</Text>
                     </View>

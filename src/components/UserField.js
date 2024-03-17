@@ -150,7 +150,8 @@ function UserField(props) {
                                             setSecurePassowrd(!securePassword)
                                             setShowPasswordEye(!showPasswordEye)
                                         }}
-                                        activeOpacity={0.5}>
+                                        activeOpacity={0.5}
+                                    >
                                         <Icon
                                             name={showPasswordEye ? 'eye' : 'eye-off'}
                                             type={'feather'}

@@ -118,11 +118,13 @@ function Ticket(props) {
                     </View>
                     <View style={styles.ticket_price}>
                         <Text
-                            style={[styles.text_ticket, { color: colors.backgroundButtonActive }]}>
+                            style={[styles.text_ticket, { color: colors.backgroundButtonActive }]}
+                        >
                             PRET
                         </Text>
                         <Text
-                            style={[styles.text_ticket, { color: colors.backgroundButtonActive }]}>
+                            style={[styles.text_ticket, { color: colors.backgroundButtonActive }]}
+                        >
                             {props.pret} RON
                         </Text>
                     </View>

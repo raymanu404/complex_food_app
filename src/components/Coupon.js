@@ -42,7 +42,8 @@ function Coupon(props) {
                     : props.type === 3
                     ? styles.ticket_container30
                     : styles.ticket_container10
-            }>
+            }
+        >
             <Text style={styles.text_ticket}>{getDateFormat()}</Text>
             <View style={styles.ticket_info}>
                 <Text style={styles.text_reducere}>Tip cupon: {typeOfCoupon(props.type)}</Text>

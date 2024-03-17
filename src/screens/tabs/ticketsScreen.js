@@ -196,7 +196,8 @@ function Tickets({ navigation }) {
         <TouchableWithoutFeedback
             onPress={() => {
                 Keyboard.dismiss()
-            }}>
+            }}
+        >
             <View style={styles.container}>
                 <View style={styles.balance_container}>
                     <Text style={styles.text_balance}>

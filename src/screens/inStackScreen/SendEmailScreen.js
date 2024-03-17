@@ -203,7 +203,8 @@ function SendEmail({ navigation, route }) {
         <TouchableWithoutFeedback
             onPress={() => {
                 Keyboard.dismiss()
-            }}>
+            }}
+        >
             <View style={styles.container}>
                 <TouchableOpacity style={styles.iconBack} onPress={() => navigation.goBack()}>
                     <Icon name={'arrow-left'} type="feather" color={colors.black} />
@@ -215,7 +216,8 @@ function SendEmail({ navigation, route }) {
                             onFocusInput.emailOnFocus
                                 ? styles.textInputContainerOnFocus
                                 : styles.textInputContainer
-                        }>
+                        }
+                    >
                         <Icon
                             name={'mail'}
                             type="ant-design"
