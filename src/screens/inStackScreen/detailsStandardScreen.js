@@ -99,7 +99,7 @@ function DetailsStandard({ navigation, route }) {
     const addToCart = async () => {
         try {
             if (quantity !== 0) {
-                let addStandardMenu = {
+                const addStandardMenu = {
                     key: menuDataInCart.key,
                     src: menuDataInCart.src,
                     title: menuDataInCart.title,
@@ -115,7 +115,7 @@ function DetailsStandard({ navigation, route }) {
                 }
 
                 console.log(dataToSend)
-                let headers = {
+                const headers = {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'

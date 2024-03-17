@@ -60,7 +60,7 @@ function ForgotPassword({ navigation, route }) {
         fail: false
     })
 
-    //renderToastMessage props
+    // renderToastMessage props
     const RenderToastSuccess = (props) => {
         return (
             <RenderToastMessage
@@ -131,7 +131,7 @@ function ForgotPassword({ navigation, route }) {
 
     // RE_PASSWORD TEXT HANDLER
     const re_passwordTextHandler = (val) => {
-        if (String(val).length !== 0 /*& String(val) === String(userInfo.password)*/) {
+        if (String(val).length !== 0 /* & String(val) === String(userInfo.password) */) {
             setUserInfo({
                 ...userInfo,
                 re_password: val
@@ -199,7 +199,7 @@ function ForgotPassword({ navigation, route }) {
     }
 
     const validatePassword = (password) => {
-        var regularExpression = /^(?=.*[0-9])(?=.*)[a-zA-Z0-9]{8,40}$/
+        const regularExpression = /^(?=.*[0-9])(?=.*)[a-zA-Z0-9]{8,40}$/
         return String(password).match(regularExpression)
     }
 
@@ -243,12 +243,12 @@ function ForgotPassword({ navigation, route }) {
                 passwordTypeError: ''
             })
             try {
-                let headers = {
+                const headers = {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
                 }
-                let dataToSend = {
+                const dataToSend = {
                     password: userInfo.password
                 }
 
@@ -359,7 +359,7 @@ function ForgotPassword({ navigation, route }) {
                     </Text>
                 </View>
 
-                {/* ------------------------------------- CONFIRMARE PAROLA --------------------------------------*/}
+                {/* ------------------------------------- CONFIRMARE PAROLA -------------------------------------- */}
                 <View style={styles.displayColumn}>
                     <View
                         style={

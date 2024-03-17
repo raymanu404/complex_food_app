@@ -3,8 +3,7 @@ const config = {
     tabWidth: 4,
     printWidth: 100,
     singleQuote: true,
-    trailingComma: 'none',
-    jsxBracketSameLine: true
+    trailingComma: 'none'
 }
 
 module.exports = config

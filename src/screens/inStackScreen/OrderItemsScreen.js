@@ -22,7 +22,7 @@ function OrderItemsScreen({ navigation, route }) {
     useEffect(() => {
         const getOrderItemAsync = async () => {
             try {
-                let headers = {
+                const headers = {
                     'Content-Type': 'application/json',
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
