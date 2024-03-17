@@ -1,12 +1,12 @@
 {
-  "expo": {
-    "name": "complex_food_v1",
-    "slug": "complex_food_v1",
-    "web": {
-      "bundler": "metro"
-    },
-    "android": {
-      "package": "com.complex_food_v1"
+    "expo": {
+        "name": "complex_food_v1",
+        "slug": "complex_food_v1",
+        "web": {
+            "bundler": "metro"
+        },
+        "android": {
+            "package": "com.complex_food_v1"
+        }
     }
-  }
 }
